@@ -110,52 +110,52 @@ export const AgendaPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in text-slate-100">
+    <div className="space-y-6 animate-fade-in text-slate-800">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <span className="text-[11px] font-extrabold tracking-widest text-slate-400 uppercase">
             AGENDA TÉCNICA
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5">
             Agenda & Instalações
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Consumo da view <code className="px-1.5 py-0.5 rounded bg-white/[0.06] text-purple-300 font-mono text-xs">v_instalacoes</code> com detecção inteligente de sobreposição
+          <p className="text-xs text-slate-500 mt-1">
+            Consumo da view <code className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-mono text-xs">v_instalacoes</code> com detecção inteligente de sobreposição
           </p>
         </div>
 
         <button
           onClick={loadData}
           disabled={loading}
-          className="flex items-center gap-2 px-3.5 py-2 bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08] rounded-xl text-xs font-semibold shadow-xs transition-colors self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-2xl text-xs font-bold shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-purple-400' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
           Sincronizar
         </button>
       </div>
 
       {/* Barra de Filtros */}
-      <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.3)] flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="rounded-3xl bg-white border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar por cliente, endereço ou técnico..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all"
+            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 transition-all"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-          <span className="text-xs font-semibold text-slate-400 shrink-0">Técnico:</span>
+          <span className="text-xs font-bold text-slate-400 shrink-0">Técnico:</span>
           <button
             onClick={() => setSelectedTecnicoFilter('todos')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
               selectedTecnicoFilter === 'todos'
-                ? 'bg-purple-600 text-white shadow-xs'
-                : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08]'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-white border border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
             }`}
           >
             Todos
@@ -164,10 +164,10 @@ export const AgendaPage: React.FC = () => {
             <button
               key={t.id}
               onClick={() => setSelectedTecnicoFilter(t.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 selectedTecnicoFilter === t.id
-                  ? 'bg-purple-600 text-white shadow-xs'
-                  : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08]'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white border border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
               {t.nome}
@@ -180,16 +180,16 @@ export const AgendaPage: React.FC = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-44 bg-white/[0.02] border border-white/[0.06] rounded-2xl animate-pulse" />
+            <div key={i} className="h-48 bg-white border border-slate-200/80 rounded-3xl animate-pulse" />
           ))}
         </div>
       ) : filteredInstalacoes.length === 0 ? (
-        <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-12 text-center text-slate-400">
-          <CalendarIcon className="w-10 h-10 mx-auto mb-2 opacity-30" />
-          <p className="text-sm font-semibold">Nenhuma instalação ativa encontrada.</p>
+        <div className="rounded-3xl bg-white border border-slate-200/80 p-12 text-center text-slate-400 shadow-xs">
+          <CalendarIcon className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
+          <p className="text-sm font-semibold text-slate-600">Nenhuma instalação ativa encontrada.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {filteredInstalacoes.map((inst) => {
             const hasConflict = conflitosPorTecnico.has(inst.pedido_id);
             const statusConfig = STATUS_CONFIG[inst.status];
@@ -197,24 +197,24 @@ export const AgendaPage: React.FC = () => {
             return (
               <div
                 key={inst.pedido_id}
-                className={`rounded-2xl bg-[#121622]/80 backdrop-blur-xl border p-5 shadow-[0_8px_30px_rgb(0,0,0,0.3)] transition-all flex flex-col justify-between ${
-                  hasConflict ? 'border-amber-400/50 ring-1 ring-amber-400/20' : 'border-white/[0.08] hover:border-white/[0.14]'
+                className={`rounded-3xl bg-white border p-6 shadow-xs transition-all flex flex-col justify-between ${
+                  hasConflict ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200/80 hover:border-blue-200'
                 }`}
               >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-2">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="font-mono text-[11px] text-slate-400">
+                      <span className="font-mono text-[11px] text-slate-400 font-bold">
                         #{inst.pedido_id.slice(0, 8)}
                       </span>
-                      <h3 className="font-bold text-base text-white leading-tight">
+                      <h3 className="font-bold text-base text-slate-900 leading-tight mt-0.5">
                         {inst.cliente_nome}
                       </h3>
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
                       <span
-                        className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+                        className={`text-xs font-bold px-3 py-0.5 rounded-full border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
                       >
                         {statusConfig.label}
                       </span>
@@ -222,48 +222,48 @@ export const AgendaPage: React.FC = () => {
                   </div>
 
                   {hasConflict && (
-                    <div className="flex items-center gap-1.5 p-2 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-300 text-xs font-medium">
-                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                    <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-xs font-medium">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                       <span>
                         <b>Alerta:</b> Conflito de horário detectado (&lt; 2h de intervalo).
                       </span>
                     </div>
                   )}
 
-                  <div className="space-y-1.5 text-xs text-slate-300">
-                    <p className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-purple-400 shrink-0" />
-                      <span className="font-semibold text-white">
+                  <div className="space-y-2 text-xs text-slate-600">
+                    <p className="flex items-center gap-2.5">
+                      <Clock className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span className="font-bold text-slate-800">
                         {formatDateTime(inst.data_instalacao)}
                       </span>
                     </p>
 
-                    <p className="flex items-center gap-2">
+                    <p className="flex items-center gap-2.5">
                       <User className="w-4 h-4 text-slate-400 shrink-0" />
                       <span>Técnico:</span>
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-slate-900">
                         {inst.tecnico_nome || 'A definir'}
                       </span>
                     </p>
 
-                    <p className="flex items-center gap-2">
+                    <p className="flex items-center gap-2.5">
                       <Phone className="w-4 h-4 text-slate-400 shrink-0" />
                       <span>{formatPhone(inst.cliente_telefone)}</span>
                     </p>
 
-                    <p className="flex items-start gap-2 pt-1 text-slate-400">
-                      <MapPin className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                    <p className="flex items-start gap-2.5 pt-1 text-slate-500">
+                      <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                       <span className="line-clamp-2">{inst.endereco}</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between">
+                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-bold block">
                       Valor
                     </span>
-                    <span className="text-sm font-extrabold text-emerald-400">
+                    <span className="text-base font-extrabold text-slate-900">
                       {formatCurrency(inst.valor_total)}
                     </span>
                   </div>
@@ -273,7 +273,7 @@ export const AgendaPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleUpdateStatus(inst.pedido_id, 'em_andamento')}
-                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                       >
                         <Play className="w-3.5 h-3.5" />
                         Iniciar
@@ -284,7 +284,7 @@ export const AgendaPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleUpdateStatus(inst.pedido_id, 'concluido')}
-                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Concluir

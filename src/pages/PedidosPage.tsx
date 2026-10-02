@@ -6,7 +6,11 @@ import {
   Play,
   History,
   Eye,
-  X
+  X,
+  CreditCard,
+  User,
+  Clock,
+  ArrowRight
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Pedido, Tecnico, StatusPedido, TipoPagamento, HistoricoStatus } from '../types/database';
@@ -99,11 +103,11 @@ export const PedidosPage: React.FC = () => {
 
       loadData();
     } catch (err: any) {
-      console.error('Erro ao atualizar status:', err);
+      console.error('Erro na transição:', err);
       showToast(
         'error',
-        'Transição Recusada pelo Banco',
-        err.message || 'O PostgreSQL barrou a transição.'
+        'Transição recusada pelo banco de dados',
+        err.message || 'Verifique as regras de fluxo do PostgreSQL.'
       );
     }
   };
@@ -113,32 +117,37 @@ export const PedidosPage: React.FC = () => {
     if (!schedulingOrder) return;
 
     if (!scheduleTecnicoId || !scheduleData) {
-      showToast('warning', 'Campos obrigatórios', 'Selecione um técnico e uma data/hora.');
+      showToast('error', 'Campos obrigatórios', 'Técnico e Data/Horário são obrigatórios para agendar.');
       return;
     }
 
     setSavingSchedule(true);
     try {
-      const dataIso = new Date(scheduleData).toISOString();
+      const isoDate = new Date(scheduleData).toISOString();
 
       const { error } = await supabase
         .from('pedidos')
         .update({
           status: 'agendado',
           tecnico_id: scheduleTecnicoId,
-          data_instalacao: dataIso,
+          data_instalacao: isoDate,
           forma_pagamento: scheduleFormaPgto || null,
         })
         .eq('id', schedulingOrder.id);
 
       if (error) throw error;
 
-      showToast('success', 'Instalação agendada com sucesso!');
+      showToast(
+        'success',
+        'Instalação agendada com sucesso!',
+        `Data e técnico registrados. A automação n8n do dia seguinte alertará a equipe.`
+      );
+
       setSchedulingOrder(null);
       loadData();
     } catch (err: any) {
-      console.error('Erro no agendamento:', err);
-      showToast('error', 'Recusa do PostgreSQL', err.message);
+      console.error('Erro ao agendar:', err);
+      showToast('error', 'Falha ao gravar agendamento', err.message);
     } finally {
       setSavingSchedule(false);
     }
@@ -175,31 +184,31 @@ export const PedidosPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in text-slate-100">
+    <div className="space-y-6 animate-fade-in text-slate-800">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <span className="text-[11px] font-extrabold tracking-widest text-slate-400 uppercase">
-            ESTADOS DO POSTGRES
+            MÁQUINA DE ESTADOS
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5">
             Gestão de Pedidos
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Transições blindadas por triggers PL/pgSQL com auditoria automática
           </p>
         </div>
 
-        {/* Filtros de Status */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0">
+        {/* Filtros de Status (Pill Design) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
           {statusOptions.map((st) => (
             <button
               key={st.id}
               onClick={() => setSelectedStatusFilter(st.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 selectedStatusFilter === st.id
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-white/[0.04] border border-white/[0.06] text-slate-400 hover:text-white hover:bg-white/[0.08]'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white border border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
               {st.label}
@@ -208,17 +217,17 @@ export const PedidosPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Lista de Pedidos em Dark Glass */}
+      {/* Lista de Pedidos em Cards Brancos */}
       {loading ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 bg-white/[0.02] border border-white/[0.06] rounded-2xl animate-pulse" />
+            <div key={i} className="h-32 bg-white border border-slate-200/80 rounded-3xl animate-pulse" />
           ))}
         </div>
       ) : filteredPedidos.length === 0 ? (
-        <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-12 text-center text-slate-400">
-          <ClipboardList className="w-10 h-10 mx-auto mb-2 opacity-30" />
-          <p className="text-sm font-semibold">Nenhum pedido encontrado neste status.</p>
+        <div className="rounded-3xl bg-white border border-slate-200/80 p-12 text-center text-slate-400 shadow-xs">
+          <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
+          <p className="text-sm font-semibold text-slate-600">Nenhum pedido encontrado neste status.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -229,16 +238,16 @@ export const PedidosPage: React.FC = () => {
             return (
               <div
                 key={pedido.id}
-                className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:border-white/[0.14] transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-5"
+                className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs hover:border-blue-200 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6"
               >
                 {/* Dados Principais */}
-                <div className="space-y-2 flex-1">
+                <div className="space-y-3 flex-1">
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="font-mono font-bold text-xs bg-white/[0.06] text-slate-300 px-2 py-0.5 rounded-md">
+                    <span className="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg border border-slate-200/60">
                       #{pedido.id.slice(0, 8)}
                     </span>
                     <span
-                      className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                      className={`text-xs font-bold px-3 py-0.5 rounded-full border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
                     >
                       {statusStyle.label}
                     </span>
@@ -247,38 +256,38 @@ export const PedidosPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                     <div>
-                      <span className="text-slate-400 block text-[11px]">Cliente</span>
-                      <span className="font-bold text-white">
+                      <span className="text-slate-400 block text-[11px] font-semibold">Cliente</span>
+                      <span className="font-bold text-slate-900 text-sm">
                         {pedido.cliente?.nome || 'Cliente não encontrado'}
                       </span>
-                      <p className="text-slate-400 text-[11px]">{formatPhone(pedido.cliente?.telefone)}</p>
+                      <p className="text-slate-500 text-[11px] mt-0.5">{formatPhone(pedido.cliente?.telefone)}</p>
                     </div>
 
                     <div>
-                      <span className="text-slate-400 block text-[11px]">Técnico Alocado</span>
-                      <span className="font-semibold text-slate-300">
+                      <span className="text-slate-400 block text-[11px] font-semibold">Técnico Alocado</span>
+                      <span className="font-semibold text-slate-700">
                         {pedido.tecnico?.nome ? (
                           `🛠️ ${pedido.tecnico.nome}`
                         ) : (
-                          <span className="text-amber-400 font-medium">Não alocado</span>
+                          <span className="text-amber-600 font-medium">Não alocado</span>
                         )}
                       </span>
                       {pedido.data_instalacao && (
-                        <p className="text-slate-400 text-[11px]">
+                        <p className="text-slate-500 text-[11px] mt-0.5">
                           📅 {formatDateTime(pedido.data_instalacao)}
                         </p>
                       )}
                     </div>
 
                     <div>
-                      <span className="text-slate-400 block text-[11px]">Valor Total (Banco)</span>
-                      <span className="font-extrabold text-sm text-emerald-400">
+                      <span className="text-slate-400 block text-[11px] font-semibold">Valor Total (Banco)</span>
+                      <span className="font-extrabold text-base text-slate-900">
                         {formatCurrency(pedido.valor_total)}
                       </span>
                       {pedido.forma_pagamento && (
-                        <span className="text-[10px] text-slate-400 uppercase block font-semibold">
+                        <span className="text-[10px] text-slate-500 uppercase block font-semibold mt-0.5">
                           💳 {pedido.forma_pagamento.replace('_', ' ')}
                         </span>
                       )}
@@ -286,31 +295,31 @@ export const PedidosPage: React.FC = () => {
                   </div>
 
                   {pedido.observacoes && (
-                    <p className="text-xs text-slate-300 italic bg-white/[0.03] p-2 rounded-lg border border-white/[0.05]">
+                    <p className="text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
                       💬 "{pedido.observacoes}"
                     </p>
                   )}
                 </div>
 
                 {/* Ações */}
-                <div className="flex flex-wrap items-center gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 border-white/[0.06] shrink-0">
+                <div className="flex flex-wrap items-center gap-2 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100 shrink-0">
                   <button
                     type="button"
                     onClick={() => setViewingOrder(pedido)}
-                    className="p-2 text-slate-400 hover:text-white hover:bg-white/[0.06] rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
+                    className="p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80 rounded-2xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     title="Ver Itens"
                   >
-                    <Eye className="w-4 h-4" />
+                    <Eye className="w-4 h-4 text-slate-500" />
                     <span className="hidden sm:inline">Itens</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleOpenHistory(pedido)}
-                    className="p-2 text-slate-400 hover:text-white hover:bg-white/[0.06] rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
+                    className="p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80 rounded-2xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     title="Histórico"
                   >
-                    <History className="w-4 h-4" />
+                    <History className="w-4 h-4 text-slate-500" />
                     <span className="hidden sm:inline">Histórico</span>
                   </button>
 
@@ -322,9 +331,9 @@ export const PedidosPage: React.FC = () => {
                           key={nextStatus}
                           type="button"
                           onClick={() => handleTransitionStatus(pedido, 'aprovado')}
-                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1"
+                          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <CheckCircle2 className="w-4 h-4" />
                           Aprovar
                         </button>
                       );
@@ -336,9 +345,9 @@ export const PedidosPage: React.FC = () => {
                           key={nextStatus}
                           type="button"
                           onClick={() => handleTransitionStatus(pedido, 'agendado')}
-                          className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1"
+                          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                         >
-                          <Calendar className="w-3.5 h-3.5" />
+                          <Calendar className="w-4 h-4" />
                           Agendar
                         </button>
                       );
@@ -350,9 +359,9 @@ export const PedidosPage: React.FC = () => {
                           key={nextStatus}
                           type="button"
                           onClick={() => handleTransitionStatus(pedido, 'em_andamento')}
-                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1"
+                          className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                         >
-                          <Play className="w-3.5 h-3.5" />
+                          <Play className="w-4 h-4" />
                           Iniciar
                         </button>
                       );
@@ -364,9 +373,9 @@ export const PedidosPage: React.FC = () => {
                           key={nextStatus}
                           type="button"
                           onClick={() => handleTransitionStatus(pedido, 'concluido')}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1"
+                          className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <CheckCircle2 className="w-4 h-4" />
                           Concluir
                         </button>
                       );
@@ -382,7 +391,7 @@ export const PedidosPage: React.FC = () => {
                               handleTransitionStatus(pedido, 'cancelado');
                             }
                           }}
-                          className="px-2.5 py-1.5 text-rose-400 hover:bg-rose-500/10 rounded-xl text-xs font-bold transition-colors border border-rose-500/30"
+                          className="px-3.5 py-2.5 text-rose-600 hover:bg-rose-50 rounded-2xl text-xs font-bold transition-colors border border-rose-200 cursor-pointer"
                         >
                           Cancelar
                         </button>
@@ -400,41 +409,41 @@ export const PedidosPage: React.FC = () => {
 
       {/* Modal Agendar Instalação */}
       {schedulingOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#121622] rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-white/[0.12]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08] bg-purple-950/20">
-              <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-purple-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-600" />
                 Agendar Instalação (#{schedulingOrder.id.slice(0, 8)})
               </h3>
               <button
                 onClick={() => setSchedulingOrder(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSaveSchedule} className="p-6 space-y-4">
-              <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20 text-xs text-purple-200 space-y-1">
+              <div className="p-4 bg-blue-50/60 rounded-2xl border border-blue-100 text-xs text-blue-950 space-y-1">
                 <p><b>Cliente:</b> {schedulingOrder.cliente?.nome}</p>
                 <p><b>Endereço:</b> {schedulingOrder.cliente?.endereco}</p>
-                <p><b>Total:</b> {formatCurrency(schedulingOrder.valor_total)}</p>
+                <p><b>Total do Pedido:</b> {formatCurrency(schedulingOrder.valor_total)}</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Técnico Responsável *
                 </label>
                 <select
                   required
                   value={scheduleTecnicoId}
                   onChange={(e) => setScheduleTecnicoId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
                 >
-                  <option value="" className="bg-[#121622]">-- Selecione o técnico --</option>
+                  <option value="">-- Selecione o técnico --</option>
                   {tecnicos.map((t) => (
-                    <option key={t.id} value={t.id} className="bg-[#121622]">
+                    <option key={t.id} value={t.id}>
                       {t.nome} ({t.especialidade})
                     </option>
                   ))}
@@ -442,7 +451,7 @@ export const PedidosPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Data e Horário *
                 </label>
                 <input
@@ -450,39 +459,39 @@ export const PedidosPage: React.FC = () => {
                   required
                   value={scheduleData}
                   onChange={(e) => setScheduleData(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Forma de Pagamento
                 </label>
                 <select
                   value={scheduleFormaPgto}
                   onChange={(e) => setScheduleFormaPgto(e.target.value as TipoPagamento)}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
                 >
-                  <option value="pix" className="bg-[#121622]">PIX</option>
-                  <option value="cartao_credito" className="bg-[#121622]">Cartão de Crédito</option>
-                  <option value="cartao_debito" className="bg-[#121622]">Cartão de Débito</option>
-                  <option value="boleto" className="bg-[#121622]">Boleto</option>
-                  <option value="dinheiro" className="bg-[#121622]">Dinheiro</option>
+                  <option value="pix">PIX</option>
+                  <option value="cartao_credito">Cartão de Crédito</option>
+                  <option value="cartao_debito">Cartão de Débito</option>
+                  <option value="boleto">Boleto</option>
+                  <option value="dinheiro">Dinheiro</option>
                 </select>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-white/[0.08]">
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setSchedulingOrder(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={savingSchedule}
-                  className="px-5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 rounded-xl shadow-xs"
+                  className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {savingSchedule ? 'Gravando no banco...' : 'Confirmar Agendamento'}
                 </button>
@@ -494,16 +503,16 @@ export const PedidosPage: React.FC = () => {
 
       {/* Modal Histórico de Auditoria */}
       {historyOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#121622] rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-white/[0.12]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
-              <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                <History className="w-4 h-4 text-indigo-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <History className="w-4 h-4 text-blue-600" />
                 Auditoria de Status (#{historyOrder.id.slice(0, 8)})
               </h3>
               <button
                 onClick={() => setHistoryOrder(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -517,22 +526,22 @@ export const PedidosPage: React.FC = () => {
                   Nenhum registro de auditoria.
                 </div>
               ) : (
-                <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-white/[0.08]">
+                <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                   {historyLogs.map((log) => (
                     <div key={log.id} className="relative">
-                      <div className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-indigo-500 ring-4 ring-indigo-500/20" />
+                      <div className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-blue-100" />
                       <div className="text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-white">
+                          <span className="font-bold text-slate-800">
                             {log.status_anterior ? (
                               <>
-                                <span className="text-slate-400">{STATUS_CONFIG[log.status_anterior].label}</span>
-                                <span className="text-slate-500 mx-1">➔</span>
+                                <span className="text-slate-500">{STATUS_CONFIG[log.status_anterior].label}</span>
+                                <span className="text-slate-400 mx-1">➔</span>
                               </>
                             ) : (
-                              <span className="text-slate-400">Criação inicial: </span>
+                              <span className="text-slate-500">Criação inicial: </span>
                             )}
-                            <span className="text-indigo-400">{STATUS_CONFIG[log.status_novo].label}</span>
+                            <span className="text-blue-600">{STATUS_CONFIG[log.status_novo].label}</span>
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-400 mt-0.5">
@@ -550,35 +559,35 @@ export const PedidosPage: React.FC = () => {
 
       {/* Modal Detalhes dos Itens */}
       {viewingOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#121622] rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-white/[0.12]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
-              <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 text-indigo-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-blue-600" />
                 Itens do Pedido #{viewingOrder.id.slice(0, 8)}
               </h3>
               <button
                 onClick={() => setViewingOrder(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-6 space-y-4 max-h-[400px] overflow-y-auto">
-              <div className="divide-y divide-white/[0.04]">
+              <div className="divide-y divide-slate-100">
                 {viewingOrder.itens && viewingOrder.itens.length > 0 ? (
                   viewingOrder.itens.map((item) => (
-                    <div key={item.id} className="py-2.5 flex items-center justify-between text-xs">
+                    <div key={item.id} className="py-3 flex items-center justify-between text-xs">
                       <div>
-                        <span className="font-bold text-white block">
+                        <span className="font-bold text-slate-900 block text-sm">
                           {item.produto?.nome || 'Produto'}
                         </span>
-                        <span className="text-slate-400 text-[11px]">
+                        <span className="text-slate-500 text-[11px]">
                           {item.quantidade}x a {formatCurrency(item.preco_unitario)}
                         </span>
                       </div>
-                      <div className="font-extrabold text-white">
+                      <div className="font-extrabold text-slate-900 text-sm">
                         {formatCurrency(item.subtotal)}
                       </div>
                     </div>
@@ -588,9 +597,9 @@ export const PedidosPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="pt-3 border-t border-white/[0.08] flex items-baseline justify-between">
-                <span className="text-xs font-bold text-slate-400">Total Confirmado:</span>
-                <span className="text-lg font-extrabold text-emerald-400">
+              <div className="pt-4 border-t border-slate-100 flex items-baseline justify-between">
+                <span className="text-xs font-bold text-slate-500">Total Confirmado:</span>
+                <span className="text-xl font-extrabold text-slate-900">
                   {formatCurrency(viewingOrder.valor_total)}
                 </span>
               </div>
