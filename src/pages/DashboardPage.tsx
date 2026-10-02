@@ -12,9 +12,6 @@ import {
   AlertCircle,
   Plus,
   ArrowUpRight,
-  Play,
-  Pause,
-  RotateCcw,
   Check,
   UserPlus,
   ShieldCheck,
@@ -34,8 +31,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [instalacoes, setInstalacoes] = useState<InstalacaoView[]>([]);
   const [pedidosRecentes, setPedidosRecentes] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isTimerRunning, setIsTimerRunning] = useState(true);
-  const [secondsElapsed, setSecondsElapsed] = useState(5048); // 01:24:08 inicial
   const { showToast } = useToast();
 
   const loadData = async () => {
@@ -66,24 +61,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   useEffect(() => {
     loadData();
   }, []);
-
-  // Timer do Time Tracker (Akino style)
-  useEffect(() => {
-    let interval: any = null;
-    if (isTimerRunning) {
-      interval = setInterval(() => {
-        setSecondsElapsed((prev) => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning]);
-
-  const formatTimer = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
 
   // Primeira instalação para o card de Reminders
   const proximaInstalacao = instalacoes[0] || null;
@@ -290,70 +267,56 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Widget 3: Project Progress (Donut Gauge) & Time Tracker - 4 Colunas */}
-        <div className="lg:col-span-4 flex flex-col gap-5 justify-between">
-          {/* Donut Semi-circular Gauge (Akino Style: Project Progress) */}
-          <div className="rounded-3xl bg-white border border-slate-200/80 p-5 shadow-xs flex-1 flex flex-col justify-between">
+        {/* Widget 3: Progresso Geral (Altura total das 4 colunas) */}
+        <div className="lg:col-span-4 rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs flex flex-col justify-between">
+          <div>
             <div className="flex items-center justify-between pb-2">
-              <h4 className="font-extrabold text-xs text-slate-900 uppercase tracking-wider">
-                Progresso Geral
-              </h4>
-              <span className="text-[11px] font-bold text-blue-600">74%</span>
-            </div>
-
-            <div className="flex items-center justify-center py-2 relative">
-              {/* Semi-circular visual donut */}
-              <div className="relative w-32 h-20 overflow-hidden flex items-end justify-center">
-                <div className="w-32 h-32 rounded-full border-[12px] border-slate-100 border-t-blue-600 border-r-blue-600 border-l-blue-600 rotate-[-45deg]" />
-                <div className="absolute bottom-0 text-center">
-                  <span className="text-xl font-extrabold text-slate-900 block leading-tight">74%</span>
-                  <span className="text-[10px] text-slate-400 font-semibold uppercase">Concluído</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-around text-[10px] font-bold text-slate-500 pt-2 border-t border-slate-100">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-blue-600" />
-                Concluídos
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-amber-500" />
-                Em Andamento
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-slate-300" />
-                Pendentes
+              <h3 className="font-extrabold text-sm text-slate-900">Progresso Geral</h3>
+              <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                74% Concluído
               </span>
             </div>
+            <p className="text-xs text-slate-500">
+              Taxa de conclusão e eficiência das ordens no mês
+            </p>
           </div>
 
-          {/* Time Tracker Mini Card (Akino Style in Royal Blue) */}
-          <div className="rounded-3xl bg-gradient-to-r from-blue-700 to-blue-800 text-white p-4 shadow-sm shadow-blue-900/15 flex items-center justify-between">
-            <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-200 block">
-                Tempo em Campo
-              </span>
-              <h3 className="text-xl font-mono font-extrabold tracking-wider mt-0.5">
-                {formatTimer(secondsElapsed)}
-              </h3>
+          {/* Donut Semi-circular Gauge ampliado */}
+          <div className="flex flex-col items-center justify-center py-5 my-auto">
+            <div className="relative w-44 h-24 overflow-hidden flex items-end justify-center">
+              <div className="w-44 h-44 rounded-full border-[14px] border-slate-100 border-t-blue-600 border-r-blue-600 border-l-blue-600 rotate-[-45deg] transition-all duration-700" />
+              <div className="absolute bottom-1 text-center">
+                <span className="text-3xl font-extrabold text-slate-900 block leading-tight">74%</span>
+                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Eficiência</span>
+              </div>
             </div>
+            <p className="text-xs text-slate-500 font-medium mt-3 text-center">
+              <span className="font-bold text-emerald-600">+8%</span> acima da meta planejada para o período
+            </p>
+          </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsTimerRunning(!isTimerRunning)}
-                className="w-9 h-9 rounded-full bg-white text-blue-700 hover:bg-blue-50 flex items-center justify-center transition-transform hover:scale-105 shadow-xs cursor-pointer"
-                title={isTimerRunning ? 'Pausar' : 'Iniciar'}
-              >
-                {isTimerRunning ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
-              </button>
-              <button
-                onClick={() => setSecondsElapsed(0)}
-                className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
-                title="Resetar"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
+          {/* Categorias e métricas de status */}
+          <div className="pt-4 border-t border-slate-100 space-y-2.5">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                <span className="font-medium text-slate-600">Concluídos</span>
+              </div>
+              <span className="font-extrabold text-slate-900">14 ordens (58%)</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                <span className="font-medium text-slate-600">Em Andamento</span>
+              </div>
+              <span className="font-extrabold text-slate-900">6 ordens (25%)</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                <span className="font-medium text-slate-600">Pendentes</span>
+              </div>
+              <span className="font-extrabold text-slate-900">4 ordens (17%)</span>
             </div>
           </div>
         </div>
