@@ -1,0 +1,126 @@
+{
+  "name": "SmartLar - 03 Pedido Concluido (Bonus)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "smartlar-pedido-concluido",
+        "options": {}
+      },
+      "name": "Webhook Supabase (Update Pedido)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "id": "webhook-update-pedido"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "status-concluido-check",
+              "leftValue": "={{ $json.body.record.status }}",
+              "rightValue": "concluido",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "status-anterior-check",
+              "leftValue": "={{ $json.body.old_record.status }}",
+              "rightValue": "concluido",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "name": "Recem Concluido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [480, 300],
+      "id": "if-recently-completed"
+    },
+    {
+      "parameters": {
+        "url": "=https://<SEU-PROJETO>.supabase.co/rest/v1/pedidos?id=eq.{{ $json.body.record.id }}&select=id,valor_total,forma_pagamento,concluido_em,cliente:clientes(nome,telefone),tecnico:tecnicos(nome)",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<SERVICE_ROLE_KEY>"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer <SERVICE_ROLE_KEY>"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Buscar Dados Financeiros",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 220],
+      "id": "http-fetch-financial-details"
+    },
+    {
+      "parameters": {
+        "jsCode": "const pedido = $input.first().json;\n\nreturn [{\n  json: {\n    pedido_id: pedido.id,\n    cliente: pedido.cliente?.nome,\n    tecnico: pedido.tecnico?.nome,\n    valor_faturado: pedido.valor_total,\n    forma_pagamento: pedido.forma_pagamento,\n    concluido_em: pedido.concluido_em,\n    resumo_faturamento: `✅ *Instalação Concluída e Faturada*\\nPedido: ${pedido.id}\\nCliente: ${pedido.cliente?.nome}\\nTécnico: ${pedido.tecnico?.nome}\\nValor Total: R$ ${Number(pedido.valor_total).toFixed(2)}\\nForma de Pagamento: ${pedido.forma_pagamento || 'A combinar'}`\n  }\n}];"
+      },
+      "name": "Formatar Registro Financeiro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [950, 220],
+      "id": "code-format-finance"
+    }
+  ],
+  "connections": {
+    "Webhook Supabase (Update Pedido)": {
+      "main": [
+        [
+          {
+            "node": "Recem Concluido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recem Concluido?": {
+      "main": [
+        [
+          {
+            "node": "Buscar Dados Financeiros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Dados Financeiros": {
+      "main": [
+        [
+          {
+            "node": "Formatar Registro Financeiro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
