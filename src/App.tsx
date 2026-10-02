@@ -10,20 +10,20 @@ import { AgendaPage } from './pages/AgendaPage';
 import { ClientesPage } from './pages/ClientesPage';
 import { ProdutosPage } from './pages/ProdutosPage';
 import { getSupabaseConfig } from './lib/supabase';
-import { Database, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, ShieldCheck, Database } from 'lucide-react';
 import { ConfigModal } from './components/ConfigModal';
 import { AuthModal } from './components/AuthModal';
 
 export const AppContent: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
+  const [currentTab, setCurrentTab] = useState<NavTab>('novo-pedido');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const { isConfigured } = getSupabaseConfig();
 
   return (
-    <div className="min-h-screen bg-slate-50/70 text-slate-900 font-sans flex flex-col">
-      {/* Sidebar (SaaS Shell) */}
+    <div className="min-h-screen bg-[#f4f5f9] text-slate-800 font-sans flex flex-col">
+      {/* Slim Dark Icon Rail (iPad Mockup Style) */}
       <Sidebar
         currentTab={currentTab}
         onTabChange={setCurrentTab}
@@ -32,8 +32,8 @@ export const AppContent: React.FC = () => {
         onOpenConfig={() => setIsConfigOpen(true)}
       />
 
-      {/* Conteúdo com margem esquerda para a Sidebar no desktop */}
-      <div className="lg:pl-64 flex-1 flex flex-col min-w-0">
+      {/* Main Area with Left Margin for the Slim Rail (w-20 on desktop) */}
+      <div className="lg:pl-20 flex-1 flex flex-col min-w-0">
         {/* Top Header Bar */}
         <Header
           currentTab={currentTab}
@@ -43,28 +43,26 @@ export const AppContent: React.FC = () => {
           onOpenAuth={() => setIsAuthOpen(true)}
         />
 
-        {/* Banner se o Supabase não estiver configurado */}
+        {/* Supabase Notice Banner */}
         {!isConfigured && (
-          <div className="bg-amber-500 text-slate-950 px-4 py-2.5 shadow-xs text-xs font-semibold flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 max-w-5xl mx-auto w-full justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-slate-950" />
-                <span>
-                  <b>Atenção:</b> Credenciais do Supabase não configuradas no <code className="bg-amber-400 px-1 py-0.5 rounded font-mono">.env</code>.
-                </span>
-              </div>
-              <button
-                onClick={() => setIsConfigOpen(true)}
-                className="px-3 py-1 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors shrink-0 text-[11px] font-bold"
-              >
-                Configurar Agora
-              </button>
+          <div className="mx-4 sm:mx-6 lg:mx-8 mb-4 bg-amber-500 text-slate-950 px-4 py-2.5 rounded-2xl shadow-xs text-xs font-semibold flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-slate-950" />
+              <span>
+                <b>Atenção:</b> Credenciais do Supabase ausentes no <code className="bg-amber-400 px-1 py-0.5 rounded font-mono">.env</code>.
+              </span>
             </div>
+            <button
+              onClick={() => setIsConfigOpen(true)}
+              className="px-3 py-1 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors shrink-0 text-[11px] font-bold"
+            >
+              Configurar DB
+            </button>
           </div>
         )}
 
-        {/* Main Content View */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        {/* Main View Container */}
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-8 max-w-[1600px] w-full mx-auto">
           {currentTab === 'dashboard' && <DashboardPage onNavigate={setCurrentTab} />}
           {currentTab === 'novo-pedido' && <NovoPedidoPage onNavigate={setCurrentTab} />}
           {currentTab === 'pedidos' && <PedidosPage />}
@@ -72,28 +70,9 @@ export const AppContent: React.FC = () => {
           {currentTab === 'clientes' && <ClientesPage />}
           {currentTab === 'produtos' && <ProdutosPage />}
         </main>
-
-        {/* Footer */}
-        <footer className="border-t border-slate-200/80 bg-white py-4 px-6 text-xs text-slate-500 mt-auto">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-blue-600" />
-              <span className="font-bold text-slate-800">SmartLar</span>
-              <span>— Solução No-Code para Gestão de Instalações</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-400">
-              <span className="flex items-center gap-1">
-                <Database className="w-3 h-3 text-emerald-500" />
-                PostgreSQL 16
-              </span>
-              <span>•</span>
-              <span>Fuso de Brasília (GMT-3)</span>
-            </div>
-          </div>
-        </footer>
       </div>
 
-      {/* Modais Globais */}
+      {/* Modais */}
       <ConfigModal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} />
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} onSuccess={() => {}} />
     </div>

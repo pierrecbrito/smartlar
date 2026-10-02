@@ -4,52 +4,32 @@
 
 @layer base {
   body {
-    @apply bg-[#090b11] text-slate-100 font-sans selection:bg-indigo-500 selection:text-white antialiased;
+    @apply bg-[#f4f5f9] text-slate-800 font-sans selection:bg-blue-600 selection:text-white antialiased;
   }
 }
 
-.glass-card {
-  background: rgba(18, 22, 34, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+.card-pos {
+  @apply bg-white border border-slate-200/70 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all;
 }
 
-.glass-card-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card-hover:hover {
-  background: rgba(24, 29, 45, 0.85);
-  border-color: rgba(255, 255, 255, 0.12);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
-}
-
-.glass-input {
-  background: rgba(14, 17, 27, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-input:focus {
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+.card-pos-hover {
+  @apply hover:shadow-[0_8px_25px_rgba(0,0,0,0.06)] hover:border-slate-300;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-slide-up {
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -1,17 +1,15 @@
 import React from 'react';
 import {
   LayoutDashboard,
-  PlusCircle,
+  ShoppingBag,
   ClipboardList,
   Calendar,
   Users,
   Package,
   ShieldCheck,
-  Database,
-  Sparkles,
-  ChevronRight,
-  HelpCircle,
-  Bot
+  Settings,
+  LogOut,
+  Database
 } from 'lucide-react';
 import { NavTab } from './Navbar';
 import { getSupabaseConfig } from '../lib/supabase';
@@ -33,41 +31,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { isConfigured } = getSupabaseConfig();
 
-  const menuItems = [
-    {
-      id: 'dashboard' as NavTab,
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-    },
-    {
-      id: 'novo-pedido' as NavTab,
-      label: 'Novo Pedido',
-      icon: PlusCircle,
-      badge: '+ Orçar',
-    },
-    {
-      id: 'pedidos' as NavTab,
-      label: 'Gestão de Pedidos',
-      icon: ClipboardList,
-    },
-    {
-      id: 'agenda' as NavTab,
-      label: 'Timeline & Agenda',
-      icon: Calendar,
-    },
-  ];
-
-  const cadastroItems = [
-    {
-      id: 'clientes' as NavTab,
-      label: 'Clientes',
-      icon: Users,
-    },
-    {
-      id: 'produtos' as NavTab,
-      label: 'Catálogo de Produtos',
-      icon: Package,
-    },
+  const navItems = [
+    { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'novo-pedido' as NavTab, label: 'Novo Pedido', icon: ShoppingBag },
+    { id: 'pedidos' as NavTab, label: 'Gestão de Pedidos', icon: ClipboardList },
+    { id: 'agenda' as NavTab, label: 'Agenda & Instalações', icon: Calendar },
+    { id: 'clientes' as NavTab, label: 'Clientes', icon: Users },
+    { id: 'produtos' as NavTab, label: 'Catálogo de Produtos', icon: Package },
   ];
 
   const handleSelect = (tab: NavTab) => {
@@ -81,124 +51,78 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs lg:hidden transition-opacity"
         />
       )}
 
-      {/* Sidebar container */}
+      {/* Slim Dark Icon Rail (Matching the uploaded iPad UI) */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-60 bg-[#0d1017] text-slate-300 flex flex-col border-r border-white/[0.06] transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-20 bg-[#0e131f] text-slate-400 flex flex-col items-center justify-between py-5 border-r border-slate-800/80 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Logo Aivora-style */}
-        <div className="px-5 py-5 border-b border-white/[0.06]">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-lg shadow-purple-500/20 flex items-center justify-center text-white shrink-0">
-              <div className="w-full h-full bg-[#0d1017] rounded-[10px] flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-indigo-400" />
-              </div>
-            </div>
-            <div className="min-w-0">
-              <span className="font-extrabold text-base text-white tracking-tight flex items-center gap-1.5">
-                SmartLar
-                <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                  AI
-                </span>
-              </span>
-              <p className="text-[10px] text-slate-400 truncate">
-                Automação Residencial
-              </p>
-            </div>
-          </div>
+        {/* Top Brand Logo */}
+        <div className="flex flex-col items-center gap-6 w-full">
+          <button
+            onClick={() => handleSelect('dashboard')}
+            className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 hover:scale-105 transition-transform"
+            title="SmartLar PRO"
+          >
+            <ShieldCheck className="w-5 h-5 text-white" />
+          </button>
+
+          {/* Icon Navigation with Left Notch */}
+          <nav className="flex flex-col items-center gap-2 w-full">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentTab === item.id;
+
+              return (
+                <div key={item.id} className="relative w-full flex items-center justify-center py-1">
+                  {/* Active White Vertical Pill Notch (Exact detail from screenshot!) */}
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-7 bg-white rounded-r-full shadow-sm" />
+                  )}
+
+                  <button
+                    onClick={() => handleSelect(item.id)}
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all group ${
+                      isActive
+                        ? 'bg-white/10 text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+                    }`}
+                    title={item.label}
+                  >
+                    <Icon className="w-5 h-5" />
+
+                    {/* Tooltip Hover no Desktop */}
+                    <span className="fixed left-20 px-2.5 py-1 bg-slate-900 text-white text-xs font-bold rounded-lg shadow-xl border border-slate-700 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 ml-2">
+                      {item.label}
+                    </span>
+                  </button>
+                </div>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto px-3 py-5 space-y-6">
-          {/* MENU */}
-          <div>
-            <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              MENU
+        {/* Bottom Actions: Settings / DB Config & Status */}
+        <div className="flex flex-col items-center gap-3 w-full pt-4 border-t border-slate-800/80">
+          <button
+            onClick={onOpenConfig}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors relative group"
+            title="Configurações Supabase"
+          >
+            <Settings className="w-5 h-5" />
+            <span
+              className={`w-2 h-2 rounded-full absolute top-2 right-2 ${
+                isConfigured ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
+              }`}
+            />
+            <span className="fixed left-20 px-2.5 py-1 bg-slate-900 text-white text-xs font-bold rounded-lg shadow-xl border border-slate-700 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 ml-2">
+              Configurações do Banco
             </span>
-            <div className="mt-2 space-y-1">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = currentTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleSelect(item.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                      isActive
-                        ? 'bg-white/[0.08] text-white font-semibold shadow-xs border-l-2 border-indigo-400 pl-2.5'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.03]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* CADASTROS */}
-          <div>
-            <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              CADASTROS
-            </span>
-            <div className="mt-2 space-y-1">
-              {cadastroItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = currentTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleSelect(item.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                      isActive
-                        ? 'bg-white/[0.08] text-white font-semibold shadow-xs border-l-2 border-indigo-400 pl-2.5'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.03]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
-                      <span>{item.label}</span>
-                    </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Card Inferior: Ask SmartLar / Aivora Bot Style */}
-        <div className="p-3.5 border-t border-white/[0.06] space-y-3">
-          <div className="p-3.5 rounded-2xl bg-gradient-to-b from-indigo-950/40 to-purple-950/40 border border-purple-500/20 text-center space-y-2 relative overflow-hidden">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 mx-auto flex items-center justify-center text-white shadow-md shadow-purple-500/30">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-white">Ask SmartLar</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">
-                Insights em tempo real com n8n e Postgres
-              </p>
-            </div>
-            <button
-              onClick={onOpenConfig}
-              className="w-full py-1.5 px-3 rounded-lg bg-white/10 hover:bg-white/15 text-[11px] font-bold text-indigo-200 border border-white/10 transition-colors"
-            >
-              {isConfigured ? 'Banco Conectado' : 'Conectar Banco'}
-            </button>
-          </div>
+          </button>
         </div>
       </aside>
     </>
