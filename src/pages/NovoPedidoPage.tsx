@@ -1,17 +1,24 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  ShoppingCart,
   Plus,
   Minus,
   Trash2,
   UserPlus,
   Search,
   CheckCircle2,
-  FileText,
-  ArrowRight,
-  Package,
   X,
-  Sparkles
+  User,
+  ShoppingBag,
+  Shield,
+  Lightbulb,
+  Cpu,
+  Lock,
+  Camera,
+  Wifi,
+  Radio,
+  Sliders,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Cliente, Produto } from '../types/database';
@@ -26,6 +33,18 @@ interface CartItem {
 interface NovoPedidoPageProps {
   onNavigate: (tab: any) => void;
 }
+
+// Helper para ícones visuais elegantes dos produtos
+const getProductIcon = (nome: string, cat: string) => {
+  const n = nome.toLowerCase();
+  if (n.includes('câmera') || n.includes('camera')) return Camera;
+  if (n.includes('fechadura')) return Lock;
+  if (n.includes('sensor')) return Radio;
+  if (n.includes('lâmpada') || n.includes('lampada') || n.includes('led')) return Lightbulb;
+  if (n.includes('speaker') || n.includes('assistente')) return Wifi;
+  if (n.includes('hub') || n.includes('central')) return Cpu;
+  return Shield;
+};
 
 export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -44,9 +63,9 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
   const [newClientEndereco, setNewClientEndereco] = useState('');
   const [savingClient, setSavingClient] = useState(false);
 
-  // Busca e filtro de produtos
+  // Busca e filtro por categoria
   const [productSearch, setProductSearch] = useState('');
-  const [selectedCategoria, setSelectedCategoria] = useState<string>('todas');
+  const [selectedCategoria, setSelectedCategoria] = useState<string>('todos');
 
   // Modal de sucesso pós-criação
   const [createdOrderSummary, setCreatedOrderSummary] = useState<{
@@ -71,6 +90,11 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
 
       setClientes(clientesRes.data || []);
       setProdutos(produtosRes.data || []);
+
+      // Seleciona o primeiro cliente por padrão para agilizar o fluxo POS
+      if (clientesRes.data && clientesRes.data.length > 0 && !selectedClienteId) {
+        setSelectedClienteId(clientesRes.data[0].id);
+      }
     } catch (err: any) {
       console.error('Erro ao carregar dados:', err);
       showToast('error', 'Falha ao carregar dados', err.message);
@@ -85,7 +109,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
 
   const categorias = useMemo(() => {
     const cats = new Set(produtos.map((p) => p.categoria));
-    return ['todas', ...Array.from(cats)];
+    return ['todos', ...Array.from(cats)];
   }, [produtos]);
 
   const filteredProdutos = useMemo(() => {
@@ -93,7 +117,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
       const matchSearch =
         p.nome.toLowerCase().includes(productSearch.toLowerCase()) ||
         (p.descricao && p.descricao.toLowerCase().includes(productSearch.toLowerCase()));
-      const matchCat = selectedCategoria === 'todas' || p.categoria === selectedCategoria;
+      const matchCat = selectedCategoria === 'todos' || p.categoria === selectedCategoria;
       return matchSearch && matchCat;
     });
   }, [produtos, productSearch, selectedCategoria]);
@@ -133,6 +157,10 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
   const totalCalculadoAoVivo = useMemo(() => {
     return cart.reduce((acc, item) => acc + item.quantidade * item.produto.preco_unitario, 0);
   }, [cart]);
+
+  const selectedCliente = useMemo(() => {
+    return clientes.find((c) => c.id === selectedClienteId);
+  }, [clientes, selectedClienteId]);
 
   const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,306 +261,325 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
   };
 
   return (
-    <div className="space-y-6 animate-fade-in text-slate-100">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <span className="text-[11px] font-extrabold tracking-widest text-slate-400 uppercase">
-            PEDIDO ATÔMICO
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-0.5">
-            Novo Pedido (Orçamento)
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Procedure transacional <code className="px-1.5 py-0.5 rounded bg-white/[0.06] text-indigo-300 font-mono text-xs">criar_pedido</code> com snapshot de preço
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Lado Esquerdo: Cliente e Catálogo (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Seleção de Cliente */}
-          <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.3)]">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <FileText className="w-4 h-4 text-indigo-400" />
-                1. Selecione o Cliente
-              </label>
-              <button
-                type="button"
-                onClick={() => setIsNewClientModalOpen(true)}
-                className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 hover:underline"
-              >
-                <UserPlus className="w-3.5 h-3.5" />
-                Cadastrar Novo
-              </button>
-            </div>
-
-            <select
-              value={selectedClienteId}
-              onChange={(e) => setSelectedClienteId(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-indigo-500 text-slate-200 transition-all"
-            >
-              <option value="" className="bg-[#121622] text-slate-400">
-                -- Selecione um cliente cadastrado --
-              </option>
-              {clientes.map((c) => (
-                <option key={c.id} value={c.id} className="bg-[#121622] text-white">
-                  {c.nome} • {formatPhone(c.telefone)} • {c.endereco}
-                </option>
-              ))}
-            </select>
+    <div className="animate-fade-in space-y-6">
+      {/* Grid Layout: Lado Esquerdo (Catálogo) + Lado Direito (Order Details) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* ============================================================== */}
+        {/* LADO ESQUERDO: Catálogo de Produtos e Categorias (8 Colunas) */}
+        {/* ============================================================== */}
+        <div className="lg:col-span-8 space-y-5">
+          {/* Pills de Categorias (Exato estilo do iPad: All products, Phones, Headphones...) */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {categorias.map((cat) => {
+              const isActive = selectedCategoria === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategoria(cat)}
+                  className={`px-5 py-2 rounded-full text-xs font-bold capitalize whitespace-nowrap transition-all shadow-xs ${
+                    isActive
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/70'
+                  }`}
+                >
+                  {cat === 'todos' ? 'All products' : cat}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Catálogo de Produtos */}
-          <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.3)]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Package className="w-4 h-4 text-indigo-400" />
-                2. Adicionar Produtos
-              </label>
+          {/* Grid de Cards dos Produtos (Estilo iPad POS) */}
+          {loadingInitial ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-64 bg-white rounded-3xl border border-slate-200/60 animate-pulse" />
+              ))}
+            </div>
+          ) : filteredProdutos.length === 0 ? (
+            <div className="bg-white rounded-3xl border border-slate-200/60 p-12 text-center text-slate-400">
+              <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm font-semibold">Nenhum equipamento encontrado nesta categoria.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {filteredProdutos.map((produto) => {
+                const inCartItem = cart.find((i) => i.produto.id === produto.id);
+                const IconComponent = getProductIcon(produto.nome, produto.categoria);
 
-              {/* Categorias */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-                {categorias.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategoria(cat)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold capitalize whitespace-nowrap transition-colors ${
-                      selectedCategoria === cat
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-white/[0.04] text-slate-400 hover:bg-white/[0.08] hover:text-white'
-                    }`}
+                return (
+                  <div
+                    key={produto.id}
+                    className="bg-white rounded-3xl p-5 border border-slate-200/70 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
                   >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
+                    <div>
+                      {/* Top Badge: Stock / Categoria (Pill em lavanda suave) */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100/60">
+                          {produto.categoria}
+                        </span>
+                      </div>
 
-            {/* Busca */}
-            <div className="relative mb-4">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Buscar por nome ou especificação técnica..."
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
-              />
-            </div>
+                      {/* Visual do Produto (Centralizado) */}
+                      <div className="my-6 flex items-center justify-center">
+                        <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-slate-50 to-slate-100 border border-slate-100 flex items-center justify-center text-blue-600 shadow-inner group-hover:scale-105 transition-transform">
+                          <IconComponent className="w-12 h-12 stroke-[1.5]" />
+                        </div>
+                      </div>
 
-            {/* Grid de Produtos */}
-            {loadingInitial ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-24 bg-white/[0.02] rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : filteredProdutos.length === 0 ? (
-              <p className="text-center py-8 text-xs text-slate-400">
-                Nenhum produto encontrado.
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[380px] overflow-y-auto pr-1">
-                {filteredProdutos.map((p) => {
-                  const inCart = cart.find((i) => i.produto.id === p.id);
-                  return (
-                    <div
-                      key={p.id}
-                      className="p-3.5 rounded-xl border border-white/[0.06] hover:border-indigo-500/40 bg-white/[0.02] hover:bg-white/[0.05] transition-all flex flex-col justify-between"
-                    >
+                      {/* Título & Preço */}
                       <div>
-                        <div className="flex items-start justify-between gap-2">
-                          <h4 className="font-bold text-xs text-white line-clamp-1">{p.nome}</h4>
-                          <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-white/[0.06] text-slate-300 shrink-0">
-                            {p.categoria}
+                        <h4 className="font-bold text-sm text-slate-900 line-clamp-1 leading-snug">
+                          {produto.nome}
+                        </h4>
+                        <div className="flex items-baseline gap-2 mt-1">
+                          <span className="text-sm font-extrabold text-slate-900">
+                            {formatCurrency(produto.preco_unitario)}
+                          </span>
+                          <span className="text-xs text-slate-400 line-through">
+                            {formatCurrency(produto.preco_unitario * 1.15)}
                           </span>
                         </div>
-                        {p.descricao && (
-                          <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                            {p.descricao}
-                          </p>
-                        )}
                       </div>
+                    </div>
 
-                      <div className="mt-3 pt-2 border-t border-white/[0.04] flex items-center justify-between">
-                        <span className="text-sm font-extrabold text-indigo-400">
-                          {formatCurrency(p.preco_unitario)}
-                        </span>
+                    {/* Botão de Ação: "+ Add to Order" OU Stepper Azul Sólido "[-  1  +]" */}
+                    <div className="mt-5">
+                      {!inCartItem ? (
                         <button
                           type="button"
-                          onClick={() => addToCart(p)}
-                          className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                            inCart
-                              ? 'bg-indigo-600/30 text-indigo-200 border border-indigo-500/40'
-                              : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-xs'
-                          }`}
+                          onClick={() => addToCart(produto)}
+                          className="w-full py-2.5 rounded-2xl border border-blue-600 text-blue-600 font-bold hover:bg-blue-50 text-xs flex items-center justify-center gap-1 transition-all"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                          {inCart ? `${inCart.quantidade} no pedido` : 'Adicionar'}
+                          <span>Add to Order</span>
                         </button>
-                      </div>
+                      ) : (
+                        <div className="w-full py-1.5 px-3 rounded-2xl bg-blue-600 text-white font-bold flex items-center justify-between text-xs shadow-xs transition-all">
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(produto.id, -1)}
+                            className="w-6 h-6 rounded-lg hover:bg-blue-700 flex items-center justify-center transition-colors"
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="font-extrabold text-sm px-2">
+                            {inCartItem.quantidade}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(produto.id, 1)}
+                            className="w-6 h-6 rounded-lg hover:bg-blue-700 flex items-center justify-center transition-colors"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Lado Direito: Carrinho / Resumo (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.3)] flex flex-col h-full justify-between">
+        {/* ============================================================== */}
+        {/* LADO DIREITO: Painel "Order details" (4 Colunas)               */}
+        {/* ============================================================== */}
+        <div className="lg:col-span-4 sticky top-20">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/70 shadow-sm flex flex-col justify-between min-h-[640px]">
             <div>
-              <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-4 h-4 text-indigo-400" />
-                  <h3 className="font-bold text-white text-sm">Resumo da Proposta</h3>
-                </div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  {cart.length} {cart.length === 1 ? 'item' : 'itens'}
-                </span>
+              {/* Header do Order details */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 className="font-extrabold text-lg text-slate-900">Order details</h3>
+                {cart.length > 0 && (
+                  <button
+                    onClick={() => setCart([])}
+                    className="text-slate-400 hover:text-slate-600 p-1"
+                    title="Limpar itens"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
 
-              {/* Lista dos Itens */}
-              {cart.length === 0 ? (
-                <div className="py-12 text-center text-slate-400">
-                  <ShoppingCart className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                  <p className="text-xs font-medium text-slate-400">Nenhum equipamento adicionado.</p>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Selecione produtos ao lado para compor o orçamento.
-                  </p>
-                </div>
-              ) : (
-                <div className="divide-y divide-white/[0.04] max-h-[300px] overflow-y-auto my-3 pr-1">
-                  {cart.map((item) => (
-                    <div key={item.produto.id} className="py-3 flex items-center justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <h5 className="font-bold text-xs text-white truncate">
-                          {item.produto.nome}
-                        </h5>
-                        <p className="text-[11px] text-slate-400">
-                          {formatCurrency(item.produto.preco_unitario)} unitário
-                        </p>
-                      </div>
+              {/* Lista dos Itens do Pedido (Thumbnails, Stepper e Lixeira) */}
+              <div className="divide-y divide-slate-100 max-h-[300px] overflow-y-auto pr-1 my-3">
+                {cart.length === 0 ? (
+                  <div className="py-16 text-center text-slate-400">
+                    <ShoppingBag className="w-12 h-12 mx-auto mb-2 opacity-25" />
+                    <p className="text-xs font-semibold text-slate-500">Seu pedido está vazio</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Clique em "+ Add to Order" para incluir itens
+                    </p>
+                  </div>
+                ) : (
+                  cart.map((item) => {
+                    const IconComp = getProductIcon(item.produto.nome, item.produto.categoria);
+                    return (
+                      <div key={item.produto.id} className="py-3 flex items-center justify-between gap-3">
+                        {/* Thumbnail */}
+                        <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-blue-600 shrink-0">
+                          <IconComp className="w-6 h-6 stroke-[1.5]" />
+                        </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Detalhes */}
+                        <div className="flex-1 min-w-0">
+                          <h5 className="font-bold text-xs text-slate-900 truncate">
+                            {item.produto.nome}
+                          </h5>
+                          <div className="flex items-baseline gap-1.5 mt-0.5">
+                            <span className="text-xs font-extrabold text-slate-900">
+                              {formatCurrency(item.produto.preco_unitario)}
+                            </span>
+                            <span className="text-[10px] text-slate-400 line-through">
+                              {formatCurrency(item.produto.preco_unitario * 1.15)}
+                            </span>
+                          </div>
+
+                          {/* Stepper inline compacto [- 1 +] */}
+                          <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-600">
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.produto.id, -1)}
+                              className="text-slate-400 hover:text-slate-800 font-bold px-1"
+                            >
+                              -
+                            </button>
+                            <span className="font-extrabold text-slate-800">{item.quantidade}</span>
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.produto.id, 1)}
+                              className="text-slate-400 hover:text-slate-800 font-bold px-1"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Botão Remover Lixeira */}
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.produto.id, -1)}
-                          className="w-6 h-6 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center text-slate-300 transition-colors"
+                          onClick={() => removeFromCart(item.produto.id)}
+                          className="text-slate-400 hover:text-rose-500 transition-colors p-1.5"
+                          title="Remover item"
                         >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="w-5 text-center text-xs font-extrabold text-white">
-                          {item.quantidade}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity(item.produto.id, 1)}
-                          className="w-6 h-6 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center text-slate-300 transition-colors"
-                        >
-                          <Plus className="w-3 h-3" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-
-                      <div className="text-right shrink-0 w-20">
-                        <span className="text-xs font-bold text-white block">
-                          {formatCurrency(item.quantidade * item.produto.preco_unitario)}
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => removeFromCart(item.produto.id)}
-                        className="text-slate-500 hover:text-rose-400 transition-colors p-1"
-                        title="Remover"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Observações */}
-              <div className="mt-4 pt-3 border-t border-white/[0.06]">
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Observações para a Instalação
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Ex: Levar escada grande, muro alto, falar com o síndico..."
-                  value={observacoes}
-                  onChange={(e) => setObservacoes(e.target.value)}
-                  className="w-full p-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
-                />
+                    );
+                  })
+                )}
               </div>
             </div>
 
-            {/* Total e Submissão */}
-            <div className="mt-6 pt-4 border-t border-white/[0.06] space-y-4">
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                    Total do Orçamento
-                  </span>
-                  <span className="text-[10px] text-slate-400">
-                    Cálculo atômico no PostgreSQL
-                  </span>
+            {/* Rodapé Financeiro e Botão Continue (Exato estilo do iPad POS) */}
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              {/* Pill Cliente Selecionado (Estilo "New User (10%) Change") */}
+              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                    <User className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-900 truncate">
+                      {selectedCliente ? selectedCliente.nome : 'Nenhum cliente'}
+                    </p>
+                    <p className="text-[10px] text-slate-400 truncate">
+                      {selectedCliente ? formatPhone(selectedCliente.telefone) : 'Selecione abaixo'}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-2xl font-extrabold text-indigo-400 tracking-tight">
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <select
+                    value={selectedClienteId}
+                    onChange={(e) => setSelectedClienteId(e.target.value)}
+                    className="text-[11px] font-bold text-slate-700 bg-white border border-slate-200 rounded-xl px-2 py-1 focus:outline-none"
+                  >
+                    {clientes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nome}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setIsNewClientModalOpen(true)}
+                    className="p-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    title="Novo Cliente"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Observações da Instalação */}
+              <div>
+                <input
+                  type="text"
+                  placeholder="Observação (ex: portão antigo, escada...)"
+                  value={observacoes}
+                  onChange={(e) => setObservacoes(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+              </div>
+
+              {/* Linhas de Valores (Subtotal, Instalação, Desconto, Total) */}
+              <div className="space-y-1.5 text-xs text-slate-600 pt-1">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-bold text-slate-900">{formatCurrency(totalCalculadoAoVivo)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Instalação</span>
+                  <span className="text-emerald-600 font-semibold">Inclusa</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Snapshot banco</span>
+                  <span>trg_itens_after</span>
+                </div>
+
+                <div className="pt-2 border-t border-dashed border-slate-200 flex items-baseline justify-between">
+                  <span className="text-base font-extrabold text-slate-900">Total</span>
+                  <span className="text-2xl font-extrabold text-slate-900">
                     {formatCurrency(totalCalculadoAoVivo)}
                   </span>
                 </div>
               </div>
 
+              {/* Botão de Ação "Continue" (Pill Azul Vibrante) */}
               <button
                 type="button"
                 onClick={handleSubmitOrder}
                 disabled={submitting || cart.length === 0 || !selectedClienteId}
-                className="w-full py-3 px-4 bg-[#e0e7ff] hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed text-[#1e1b4b] font-extrabold rounded-xl text-sm shadow-lg shadow-indigo-500/10 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold rounded-2xl text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Processando via RPC...
                   </>
                 ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4" />
-                    Confirmar e Salvar Pedido
-                  </>
+                  <span>Continue</span>
                 )}
               </button>
-
-              {(!selectedClienteId || cart.length === 0) && (
-                <p className="text-[11px] text-amber-400 text-center font-medium">
-                  {!selectedClienteId
-                    ? '⚠️ Selecione um cliente para habilitar o orçamento.'
-                    : '⚠️ Adicione produtos para salvar.'}
-                </p>
-              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal Cadastro de Cliente */}
+      {/* Modal Novo Cliente */}
       {isNewClientModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#121622] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-white/[0.12]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
-              <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                <UserPlus className="w-4 h-4 text-indigo-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <UserPlus className="w-4 h-4 text-blue-600" />
                 Cadastrar Novo Cliente
               </h3>
               <button
                 onClick={() => setIsNewClientModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -540,7 +587,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
 
             <form onSubmit={handleCreateClient} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Nome Completo *
                 </label>
                 <input
@@ -549,12 +596,12 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                   placeholder="Ex: Mariana Silveira"
                   value={newClientNome}
                   onChange={(e) => setNewClientNome(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Telefone (WhatsApp) *
                 </label>
                 <input
@@ -563,12 +610,12 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                   placeholder="Ex: 81999998888"
                   value={newClientTelefone}
                   onChange={(e) => setNewClientTelefone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Endereço da Instalação *
                 </label>
                 <input
@@ -577,22 +624,22 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                   placeholder="Rua, Número, Bairro, Cidade"
                   value={newClientEndereco}
                   onChange={(e) => setNewClientEndereco(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-white/[0.08]">
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsNewClientModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+                  className="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-xl"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={savingClient}
-                  className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl"
+                  className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl"
                 >
                   {savingClient ? 'Salvando...' : 'Salvar e Selecionar'}
                 </button>
@@ -604,33 +651,33 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
 
       {/* Modal de Sucesso Pós-Criação */}
       {createdOrderSummary && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#121622] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-white/[0.12] p-6 text-center space-y-4">
-            <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full mx-auto flex items-center justify-center border border-emerald-500/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 p-6 text-center space-y-4">
+            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full mx-auto flex items-center justify-center">
               <CheckCircle2 className="w-6 h-6" />
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-white">
+              <h3 className="text-lg font-bold text-slate-900">
                 Orçamento Registrado no PostgreSQL!
               </h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Transação atômica concluída via procedure <code className="font-mono text-indigo-300">criar_pedido</code>
+              <p className="text-xs text-slate-500 mt-1">
+                Transação atômica executada via procedure <code className="font-mono text-blue-600 font-bold">criar_pedido</code>
               </p>
             </div>
 
-            <div className="p-4 bg-white/[0.03] rounded-xl border border-white/[0.08] text-left space-y-2 text-xs">
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-left space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-400">ID:</span>
-                <span className="font-mono font-bold text-white">{createdOrderSummary.id.slice(0, 8)}...</span>
+                <span className="text-slate-500">ID do Pedido:</span>
+                <span className="font-mono font-bold text-slate-800">{createdOrderSummary.id.slice(0, 8)}...</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Cliente:</span>
-                <span className="font-bold text-white">{createdOrderSummary.clienteNome}</span>
+                <span className="text-slate-500">Cliente:</span>
+                <span className="font-bold text-slate-800">{createdOrderSummary.clienteNome}</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-white/[0.08] text-sm">
-                <span className="font-bold text-slate-300">Total Gravado pelo Banco:</span>
-                <span className="font-extrabold text-emerald-400">
+              <div className="flex justify-between pt-2 border-t border-slate-200 text-sm">
+                <span className="font-bold text-slate-700">Total do Banco:</span>
+                <span className="font-extrabold text-emerald-700">
                   {formatCurrency(createdOrderSummary.valor_total)}
                 </span>
               </div>
@@ -640,7 +687,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
               <button
                 type="button"
                 onClick={() => setCreatedOrderSummary(null)}
-                className="flex-1 py-2.5 bg-white/[0.06] hover:bg-white/[0.12] text-white rounded-xl text-xs font-bold transition-colors"
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
               >
                 Criar Outro
               </button>
@@ -650,9 +697,9 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                   setCreatedOrderSummary(null);
                   onNavigate('pedidos');
                 }}
-                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"
               >
-                Gerenciar Pedidos
+                Ver Pedidos
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
