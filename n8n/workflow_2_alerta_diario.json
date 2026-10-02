@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "url": "=https://<SEU-PROJETO>.supabase.co/rest/v1/v_instalacoes?status=eq.agendado&and=(data_instalacao.gte.{{ $now.setZone('America/Sao_Paulo').plus({days:1}).startOf('day').toISO() }},data_instalacao.lt.{{ $now.setZone('America/Sao_Paulo').plus({days:1}).endOf('day').toISO() }})&order=data_instalacao.asc",
+        "url": "=https://eyjfofrwjixirbuvvlmk.supabase.co/rest/v1/v_instalacoes?status=eq.agendado&and=(data_instalacao.gte.{{ $now.setZone('America/Sao_Paulo').plus({days:1}).startOf('day').toISO() }},data_instalacao.lt.{{ $now.setZone('America/Sao_Paulo').plus({days:1}).endOf('day').toISO() }})&order=data_instalacao.asc",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [

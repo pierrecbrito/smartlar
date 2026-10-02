@@ -15,7 +15,7 @@
     },
     {
       "parameters": {
-        "url": "=https://<SEU-PROJETO>.supabase.co/rest/v1/pedidos?id=eq.{{ $json.body.record.id }}&select=id,status,valor_total,created_at,observacoes,cliente:clientes(nome,telefone,endereco),itens:itens_pedido(quantidade,preco_unitario,subtotal,produto:produtos(nome))",
+        "url": "=https://eyjfofrwjixirbuvvlmk.supabase.co/rest/v1/pedidos?id=eq.{{ $json.body.record.id }}&select=id,status,valor_total,created_at,observacoes,cliente:clientes(nome,telefone,endereco),itens:itens_pedido(quantidade,preco_unitario,subtotal,produto:produtos(nome))",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
