@@ -1,5 +1,16 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Package, Plus, Search, Tag, DollarSign, ToggleLeft, ToggleRight, RefreshCw, X } from 'lucide-react';
+import {
+  Package,
+  Plus,
+  Search,
+  DollarSign,
+  ToggleLeft,
+  ToggleRight,
+  RefreshCw,
+  X,
+  Edit2,
+  Check
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Produto } from '../types/database';
 import { formatCurrency } from '../lib/utils';
@@ -18,6 +29,11 @@ export const ProdutosPage: React.FC = () => {
   const [preco, setPreco] = useState('');
   const [descricao, setDescricao] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Modal Editar Preço (Exigência específica da Tela 3)
+  const [editingProduct, setEditingProduct] = useState<Produto | null>(null);
+  const [newPrice, setNewPrice] = useState('');
+  const [savingPrice, setSavingPrice] = useState(false);
 
   const { showToast } = useToast();
 
@@ -110,6 +126,42 @@ export const ProdutosPage: React.FC = () => {
     }
   };
 
+  const handleSavePrice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+
+    setSavingPrice(true);
+    try {
+      const numPrice = parseFloat(newPrice.replace(',', '.'));
+      if (isNaN(numPrice) || numPrice < 0) {
+        throw new Error('Informe um preço válido.');
+      }
+
+      const { error } = await supabase
+        .from('produtos')
+        .update({ preco_unitario: numPrice })
+        .eq('id', editingProduct.id);
+
+      if (error) throw error;
+
+      showToast(
+        'success',
+        'Preço atualizado com sucesso!',
+        `Novo valor: ${formatCurrency(numPrice)}. Pedidos anteriores mantêm o valor congelado.`
+      );
+
+      setProdutos((prev) =>
+        prev.map((p) => (p.id === editingProduct.id ? { ...p, preco_unitario: numPrice } : p))
+      );
+      setEditingProduct(null);
+    } catch (err: any) {
+      console.error('Erro ao atualizar preço:', err);
+      showToast('error', 'Falha ao atualizar preço', err.message);
+    } finally {
+      setSavingPrice(false);
+    }
+  };
+
   const filteredProdutos = produtos.filter((p) => {
     const matchSearch =
       p.nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -127,7 +179,7 @@ export const ProdutosPage: React.FC = () => {
             Catálogo de Produtos
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Preços unitários protegidos por snapshot em novos pedidos
+            Preços unitários protegidos por snapshot (reajustes não afetam pedidos passados)
           </p>
         </div>
 
@@ -221,9 +273,22 @@ export const ProdutosPage: React.FC = () => {
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">
                     Preço Unitário
                   </span>
-                  <span className="text-base font-extrabold text-blue-700">
-                    {formatCurrency(p.preco_unitario)}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base font-extrabold text-blue-700">
+                      {formatCurrency(p.preco_unitario)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingProduct(p);
+                        setNewPrice(p.preco_unitario.toString());
+                      }}
+                      className="text-slate-400 hover:text-blue-600 p-1 rounded hover:bg-slate-100 transition-colors"
+                      title="Editar preço do produto"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 <button
@@ -251,6 +316,68 @@ export const ProdutosPage: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal Editar Preço (Tela 3) */}
+      {editingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-blue-600" />
+                Editar Preço do Produto
+              </h3>
+              <button
+                onClick={() => setEditingProduct(null)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePrice} className="p-6 space-y-4">
+              <div className="text-xs text-slate-600 bg-blue-50/60 border border-blue-100 p-3 rounded-xl">
+                <p className="font-bold text-slate-800">{editingProduct.nome}</p>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  💡 Atualizar o preço no catálogo só afeta novos orçamentos. Pedidos antigos mantêm o valor histórico congelado.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Novo Preço Unitário (R$) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  placeholder="Ex: 480.00"
+                  value={newPrice}
+                  onChange={(e) => setNewPrice(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingProduct(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingPrice}
+                  className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-xs flex items-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  {savingPrice ? 'Salvando...' : 'Atualizar Preço'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

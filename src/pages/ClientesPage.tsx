@@ -1,8 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Users, UserPlus, Search, Phone, Mail, MapPin, RefreshCw, X } from 'lucide-react';
+import {
+  Users,
+  UserPlus,
+  Search,
+  Phone,
+  Mail,
+  MapPin,
+  RefreshCw,
+  X,
+  ClipboardList,
+  Clock,
+  ArrowRight
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Cliente } from '../types/database';
-import { formatPhone, formatDateTime } from '../lib/utils';
+import { Cliente, Pedido } from '../types/database';
+import { formatPhone, formatDateTime, formatCurrency, STATUS_CONFIG } from '../lib/utils';
 import { useToast } from '../components/Toast';
 
 export const ClientesPage: React.FC = () => {
@@ -10,13 +22,18 @@ export const ClientesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  // Modal
+  // Modal Cadastro
   const [modalOpen, setModalOpen] = useState(false);
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [email, setEmail] = useState('');
   const [endereco, setEndereco] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Modal Ver Pedidos do Cliente (Exigência específica da Tela 2)
+  const [selectedClientForOrders, setSelectedClientForOrders] = useState<Cliente | null>(null);
+  const [clientOrders, setClientOrders] = useState<Pedido[]>([]);
+  const [loadingClientOrders, setLoadingClientOrders] = useState(false);
 
   const { showToast } = useToast();
 
@@ -41,6 +58,30 @@ export const ClientesPage: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleOpenClientOrders = async (cliente: Cliente) => {
+    setSelectedClientForOrders(cliente);
+    setLoadingClientOrders(true);
+    try {
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select(`
+          *,
+          tecnico:tecnicos(nome),
+          itens:itens_pedido(*, produto:produtos(nome))
+        `)
+        .eq('cliente_id', cliente.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setClientOrders(data || []);
+    } catch (err: any) {
+      console.error('Erro ao buscar pedidos do cliente:', err);
+      showToast('error', 'Erro ao carregar histórico do cliente', err.message);
+    } finally {
+      setLoadingClientOrders(false);
+    }
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +139,7 @@ export const ClientesPage: React.FC = () => {
             Clientes
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Base de clientes e endereços de instalação cadastrados
+            Base de clientes e endereços de instalação cadastrados (clique para ver os pedidos)
           </p>
         </div>
 
@@ -150,10 +191,18 @@ export const ClientesPage: React.FC = () => {
           {filteredClientes.map((cliente) => (
             <div
               key={cliente.id}
-              className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between"
+              onClick={() => handleOpenClientOrders(cliente)}
+              className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group"
             >
               <div>
-                <h3 className="font-bold text-base text-slate-900 line-clamp-1">{cliente.nome}</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-base text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                    {cliente.nome}
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Ver Pedidos ➔
+                  </span>
+                </div>
                 <div className="mt-3 space-y-2 text-xs text-slate-600">
                   <p className="flex items-center gap-2">
                     <Phone className="w-3.5 h-3.5 text-blue-600 shrink-0" />
@@ -174,9 +223,98 @@ export const ClientesPage: React.FC = () => {
 
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
                 <span>Cadastrado em {formatDateTime(cliente.created_at)}</span>
+                <span className="text-blue-600 font-semibold group-hover:underline">Histórico</span>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* MODAL VER PEDIDOS DO CLIENTE (Tela 2) */}
+      {selectedClientForOrders && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="w-5 h-5 text-blue-600" />
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm">
+                    Pedidos de {selectedClientForOrders.nome}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {formatPhone(selectedClientForOrders.telefone)} • {selectedClientForOrders.endereco}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedClientForOrders(null)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 max-h-[480px] overflow-y-auto space-y-4">
+              {loadingClientOrders ? (
+                <div className="py-12 text-center text-xs text-slate-400">
+                  <div className="w-6 h-6 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mx-auto mb-2" />
+                  Carregando pedidos...
+                </div>
+              ) : clientOrders.length === 0 ? (
+                <div className="py-12 text-center text-slate-400">
+                  <ClipboardList className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p className="text-xs font-semibold">Nenhum pedido encontrado para este cliente.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {clientOrders.map((pedido) => {
+                    const st = STATUS_CONFIG[pedido.status];
+                    return (
+                      <div
+                        key={pedido.id}
+                        className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white transition-all space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded">
+                              #{pedido.id.slice(0, 8)}
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${st.bg} ${st.text} ${st.border}`}
+                            >
+                              {st.label}
+                            </span>
+                          </div>
+                          <span className="text-sm font-extrabold text-emerald-700">
+                            {formatCurrency(pedido.valor_total)}
+                          </span>
+                        </div>
+
+                        {/* Itens */}
+                        {pedido.itens && pedido.itens.length > 0 && (
+                          <div className="text-xs text-slate-600 divide-y divide-slate-100 bg-white p-2 rounded-lg border border-slate-100">
+                            {pedido.itens.map((it) => (
+                              <div key={it.id} className="py-1 flex justify-between">
+                                <span>{it.quantidade}x {it.produto?.nome || 'Produto'}</span>
+                                <span className="font-semibold text-slate-800">{formatCurrency(it.subtotal)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                          <span>Criado em {formatDateTime(pedido.created_at)}</span>
+                          {pedido.tecnico?.nome && (
+                            <span className="text-slate-600 font-medium">Técnico: {pedido.tecnico.nome}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
