@@ -6,9 +6,11 @@ import {
   Calendar,
   Users,
   Package,
-  ShieldCheck,
   Settings,
-  LogOut,
+  ShieldCheck,
+  Smartphone,
+  ExternalLink,
+  HelpCircle,
   Database
 } from 'lucide-react';
 import { NavTab } from './Navbar';
@@ -31,12 +33,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { isConfigured } = getSupabaseConfig();
 
-  const navItems = [
+  const menuItems = [
     { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'novo-pedido' as NavTab, label: 'Novo Pedido', icon: ShoppingBag },
     { id: 'pedidos' as NavTab, label: 'Gestão de Pedidos', icon: ClipboardList },
     { id: 'agenda' as NavTab, label: 'Agenda & Instalações', icon: Calendar },
-    { id: 'clientes' as NavTab, label: 'Clientes', icon: Users },
+    { id: 'clientes' as NavTab, label: 'Clientes & Contatos', icon: Users },
     { id: 'produtos' as NavTab, label: 'Catálogo de Produtos', icon: Package },
   ];
 
@@ -51,78 +53,117 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs lg:hidden transition-opacity"
         />
       )}
 
-      {/* Slim Dark Icon Rail (Matching the uploaded iPad UI) */}
+      {/* Akino Style Clean White Sidebar (w-64) */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-20 bg-[#0e131f] text-slate-400 flex flex-col items-center justify-between py-5 border-r border-slate-800/80 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white text-slate-700 flex flex-col justify-between border-r border-slate-200/80 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Top Brand Logo */}
-        <div className="flex flex-col items-center gap-6 w-full">
-          <button
-            onClick={() => handleSelect('dashboard')}
-            className="w-12 h-12 rounded-2xl bg-[#090d16] border border-slate-700/50 flex items-center justify-center p-1.5 shadow-md shadow-black/40 hover:scale-105 transition-transform overflow-hidden cursor-pointer"
-            title="SmartLar"
-          >
-            <img src="/logo.png" alt="SmartLar Logo" className="w-full h-full object-contain" />
-          </button>
+        <div className="flex flex-col flex-1 overflow-y-auto">
+          {/* Top Brand: Logo + Name (Akino style) */}
+          <div className="flex items-center gap-3 px-6 py-6 border-b border-slate-100">
+            <div className="w-10 h-10 rounded-2xl bg-[#090d16] border border-slate-700/50 flex items-center justify-center p-1 shadow-md shadow-blue-900/10 overflow-hidden shrink-0">
+              <img src="/logo.png" alt="SmartLar" className="w-full h-full object-contain" />
+            </div>
+            <div>
+              <h1 className="font-extrabold text-base text-slate-900 tracking-tight leading-none">
+                SMART<span className="text-blue-600">LAR</span>
+              </h1>
+              <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase block mt-1">
+                Automação & Segurança
+              </span>
+            </div>
+          </div>
 
-          {/* Icon Navigation with Left Notch */}
-          <nav className="flex flex-col items-center gap-2 w-full">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentTab === item.id;
+          {/* Navigation Section: MENU */}
+          <div className="px-4 py-5">
+            <span className="text-[11px] font-extrabold tracking-widest text-slate-400 uppercase px-3 block mb-3">
+              MENU
+            </span>
+            <nav className="space-y-1">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentTab === item.id;
 
-              return (
-                <div key={item.id} className="relative w-full flex items-center justify-center py-1">
-                  {/* Active White Vertical Pill Notch (Exact detail from screenshot!) */}
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-7 bg-white rounded-r-full shadow-sm" />
-                  )}
-
+                return (
                   <button
+                    key={item.id}
                     onClick={() => handleSelect(item.id)}
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all group ${
+                    className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer relative group ${
                       isActive
-                        ? 'bg-white/10 text-white shadow-xs'
-                        : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+                        ? 'bg-blue-50/80 text-blue-700 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`}
-                    title={item.label}
                   >
-                    <Icon className="w-5 h-5" />
+                    {/* Active vertical pill indicator on left (Exact Akino style) */}
+                    {isActive && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-blue-600 rounded-r-full shadow-sm" />
+                    )}
 
-                    {/* Tooltip Hover no Desktop */}
-                    <span className="fixed left-20 px-2.5 py-1 bg-slate-900 text-white text-xs font-bold rounded-lg shadow-xl border border-slate-700 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 ml-2">
-                      {item.label}
-                    </span>
+                    <Icon
+                      className={`w-4 h-4 shrink-0 transition-colors ${
+                        isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'
+                      }`}
+                    />
+                    <span className="truncate">{item.label}</span>
                   </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Navigation Section: GERAL */}
+          <div className="px-4 pb-4">
+            <span className="text-[11px] font-extrabold tracking-widest text-slate-400 uppercase px-3 block mb-3">
+              GERAL
+            </span>
+            <nav className="space-y-1">
+              <button
+                onClick={onOpenConfig}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <Database className="w-4 h-4 text-slate-400" />
+                  <span>Configuração DB</span>
                 </div>
-              );
-            })}
-          </nav>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isConfigured ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
+                  }`}
+                />
+              </button>
+            </nav>
+          </div>
         </div>
 
-        {/* Bottom Actions: Settings / DB Config & Status */}
-        <div className="flex flex-col items-center gap-3 w-full pt-4 border-t border-slate-800/80">
-          <button
-            onClick={onOpenConfig}
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors relative group"
-            title="Configurações Supabase"
-          >
-            <Settings className="w-5 h-5" />
-            <span
-              className={`w-2 h-2 rounded-full absolute top-2 right-2 ${
-                isConfigured ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
-              }`}
-            />
-            <span className="fixed left-20 px-2.5 py-1 bg-slate-900 text-white text-xs font-bold rounded-lg shadow-xl border border-slate-700 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 ml-2">
-              Configurações do Banco
-            </span>
-          </button>
+        {/* Bottom Card: "SmartLar Mobile App" (Exact Akino style mini card) */}
+        <div className="p-4 border-t border-slate-100">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 text-white p-4 shadow-sm shadow-blue-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <div className="w-8 h-8 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center">
+                <Smartphone className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-[10px] font-extrabold uppercase bg-white/20 px-2 py-0.5 rounded-full">
+                App Campo
+              </span>
+            </div>
+
+            <h4 className="font-extrabold text-xs leading-tight">SmartLar Mobile</h4>
+            <p className="text-[11px] text-blue-100 mt-1 leading-snug">
+              Acesso rápido para os técnicos realizarem checklists em campo.
+            </p>
+
+            <button
+              onClick={() => handleSelect('agenda')}
+              className="mt-3 w-full py-2 bg-white text-blue-700 hover:bg-blue-50 font-bold rounded-2xl text-xs transition-all shadow-xs text-center cursor-pointer"
+            >
+              Abrir Agenda Técnica
+            </button>
+          </div>
         </div>
       </aside>
     </>

@@ -32,8 +32,8 @@ export const AppContent: React.FC = () => {
         onOpenConfig={() => setIsConfigOpen(true)}
       />
 
-      {/* Main Area with Left Margin for the Slim Rail (w-20 on desktop) */}
-      <div className="lg:pl-20 flex-1 flex flex-col min-w-0">
+      {/* Main Area with Left Margin for the Akino Sidebar (w-64 on desktop) */}
+      <div className="lg:pl-64 flex-1 flex flex-col min-w-0">
         {/* Top Header Bar */}
         <Header
           currentTab={currentTab}
