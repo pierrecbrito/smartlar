@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-[#f8fafc]/90 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 border-b border-slate-200/60">
+    <header className="sticky top-0 z-30 bg-[#eaecf2]/85 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 border-b border-slate-300/60">
       {/* Mobile Toggle & Search Bar Pill (Akino Style) */}
       <div className="flex items-center gap-3 flex-1 max-w-lg">
         <button
