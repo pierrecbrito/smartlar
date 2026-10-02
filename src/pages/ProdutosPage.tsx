@@ -3,7 +3,6 @@ import {
   Package,
   Plus,
   Search,
-  DollarSign,
   ToggleLeft,
   ToggleRight,
   RefreshCw,
@@ -30,7 +29,7 @@ export const ProdutosPage: React.FC = () => {
   const [descricao, setDescricao] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Modal Editar Preço (Exigência específica da Tela 3)
+  // Modal Editar Preço
   const [editingProduct, setEditingProduct] = useState<Produto | null>(null);
   const [newPrice, setNewPrice] = useState('');
   const [savingPrice, setSavingPrice] = useState(false);
@@ -171,14 +170,17 @@ export const ProdutosPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in text-slate-100">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <span className="text-[11px] font-extrabold tracking-widest text-slate-400 uppercase">
+            CATÁLOGO & PREÇOS
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-0.5">
             Catálogo de Produtos
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Preços unitários protegidos por snapshot (reajustes não afetam pedidos passados)
           </p>
         </div>
@@ -187,14 +189,14 @@ export const ProdutosPage: React.FC = () => {
           <button
             onClick={loadData}
             disabled={loading}
-            className="p-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl shadow-xs transition-colors"
+            className="p-2.5 bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08] rounded-xl shadow-xs transition-colors"
             title="Atualizar lista"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-600' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
           </button>
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
             Novo Produto
@@ -203,15 +205,15 @@ export const ProdutosPage: React.FC = () => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.3)] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar por produto ou descrição..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
           />
         </div>
 
@@ -222,8 +224,8 @@ export const ProdutosPage: React.FC = () => {
               onClick={() => setSelectedCat(cat)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize whitespace-nowrap transition-all ${
                 selectedCat === cat
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08]'
               }`}
             >
               {cat}
@@ -236,11 +238,11 @@ export const ProdutosPage: React.FC = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-36 bg-white border border-slate-200 rounded-2xl animate-pulse" />
+            <div key={i} className="h-36 bg-white/[0.02] border border-white/[0.06] rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filteredProdutos.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
+        <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-12 text-center text-slate-400">
           <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
           <p className="text-sm font-semibold">Nenhum produto cadastrado com os critérios.</p>
         </div>
@@ -249,32 +251,32 @@ export const ProdutosPage: React.FC = () => {
           {filteredProdutos.map((p) => (
             <div
               key={p.id}
-              className={`bg-white rounded-2xl border p-5 shadow-xs transition-all flex flex-col justify-between ${
-                p.ativo ? 'border-slate-200 hover:border-slate-300' : 'border-slate-200/60 bg-slate-50/50 opacity-75'
+              className={`rounded-2xl bg-[#121622]/80 backdrop-blur-xl border p-5 shadow-[0_8px_30px_rgb(0,0,0,0.3)] transition-all flex flex-col justify-between ${
+                p.ativo ? 'border-white/[0.08] hover:border-indigo-500/40' : 'border-white/[0.04] bg-white/[0.01] opacity-60'
               }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-bold text-sm text-slate-900 leading-tight">{p.nome}</h3>
-                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 shrink-0">
+                  <h3 className="font-bold text-sm text-white leading-tight">{p.nome}</h3>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-300 shrink-0">
                     {p.categoria}
                   </span>
                 </div>
 
                 {p.descricao && (
-                  <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
                     {p.descricao}
                   </p>
                 )}
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">
                     Preço Unitário
                   </span>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-base font-extrabold text-blue-700">
+                    <span className="text-base font-extrabold text-indigo-400">
                       {formatCurrency(p.preco_unitario)}
                     </span>
                     <button
@@ -283,8 +285,8 @@ export const ProdutosPage: React.FC = () => {
                         setEditingProduct(p);
                         setNewPrice(p.preco_unitario.toString());
                       }}
-                      className="text-slate-400 hover:text-blue-600 p-1 rounded hover:bg-slate-100 transition-colors"
-                      title="Editar preço do produto"
+                      className="text-slate-400 hover:text-white p-1 rounded hover:bg-white/[0.06] transition-colors"
+                      title="Editar preço"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
@@ -296,14 +298,14 @@ export const ProdutosPage: React.FC = () => {
                   onClick={() => handleToggleAtivo(p)}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                     p.ativo
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                      : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+                      : 'bg-white/[0.06] text-slate-400 hover:bg-white/[0.1]'
                   }`}
                   title={p.ativo ? 'Desativar produto' : 'Ativar produto'}
                 >
                   {p.ativo ? (
                     <>
-                      <ToggleRight className="w-4 h-4 text-emerald-600" />
+                      <ToggleRight className="w-4 h-4 text-emerald-400" />
                       <span>Ativo</span>
                     </>
                   ) : (
@@ -319,33 +321,33 @@ export const ProdutosPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Editar Preço (Tela 3) */}
+      {/* Modal Editar Preço */}
       {editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <Edit2 className="w-4 h-4 text-blue-600" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#121622] rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-white/[0.12]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
+              <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-indigo-400" />
                 Editar Preço do Produto
               </h3>
               <button
                 onClick={() => setEditingProduct(null)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSavePrice} className="p-6 space-y-4">
-              <div className="text-xs text-slate-600 bg-blue-50/60 border border-blue-100 p-3 rounded-xl">
-                <p className="font-bold text-slate-800">{editingProduct.nome}</p>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  💡 Atualizar o preço no catálogo só afeta novos orçamentos. Pedidos antigos mantêm o valor histórico congelado.
+              <div className="text-xs text-slate-300 bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl">
+                <p className="font-bold text-white">{editingProduct.nome}</p>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  💡 Atualizar o preço no catálogo não afeta pedidos passados (snapshot de preço preservado).
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Novo Preço Unitário (R$) *
                 </label>
                 <input
@@ -355,25 +357,25 @@ export const ProdutosPage: React.FC = () => {
                   placeholder="Ex: 480.00"
                   value={newPrice}
                   onChange={(e) => setNewPrice(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
+                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm font-bold text-white focus:outline-none focus:border-indigo-500 font-mono"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-2 flex justify-end gap-2 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setEditingProduct(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={savingPrice}
-                  className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-xs flex items-center gap-1.5"
+                  className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all shadow-xs flex items-center gap-1.5"
                 >
                   <Check className="w-3.5 h-3.5" />
-                  {savingPrice ? 'Salvando...' : 'Atualizar Preço'}
+                  {savingPrice ? 'Salvando...' : 'Salvar Preço'}
                 </button>
               </div>
             </form>
@@ -383,16 +385,16 @@ export const ProdutosPage: React.FC = () => {
 
       {/* Modal Cadastro de Produto */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <Plus className="w-4 h-4 text-blue-600" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#121622] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-white/[0.12]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
+              <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                <Plus className="w-4 h-4 text-indigo-400" />
                 Cadastrar Novo Produto
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -400,8 +402,8 @@ export const ProdutosPage: React.FC = () => {
 
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Nome do Dispositivo / Equipamento *
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Nome do Dispositivo *
                 </label>
                 <input
                   type="text"
@@ -409,12 +411,12 @@ export const ProdutosPage: React.FC = () => {
                   placeholder="Ex: Câmera Speed Dome 4K"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Categoria *
                 </label>
                 <input
@@ -423,12 +425,12 @@ export const ProdutosPage: React.FC = () => {
                   placeholder="Segurança, Automação, Iluminação..."
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Preço Unitário (R$) *
                 </label>
                 <input
@@ -437,35 +439,35 @@ export const ProdutosPage: React.FC = () => {
                   placeholder="Ex: 450.00"
                   value={preco}
                   onChange={(e) => setPreco(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
+                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Descrição Técnica
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Especificações, alcance, conectividade..."
+                  placeholder="Especificações, conectividade..."
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+              <div className="pt-3 flex justify-end gap-2 border-t border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-xs"
+                  className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl"
                 >
                   {saving ? 'Cadastrando...' : 'Salvar Produto'}
                 </button>

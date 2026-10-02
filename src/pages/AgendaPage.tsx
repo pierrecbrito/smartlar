@@ -9,8 +9,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   RefreshCw,
-  Search,
-  Filter
+  Search
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { InstalacaoView, Tecnico, StatusPedido } from '../types/database';
@@ -53,7 +52,6 @@ export const AgendaPage: React.FC = () => {
     loadData();
   }, []);
 
-  // Detector de sobreposição de horário / conflito de agenda por técnico
   const conflitosPorTecnico = useMemo(() => {
     const conflitos = new Set<string>();
     const agrupadoPorTecnico: Record<string, InstalacaoView[]> = {};
@@ -69,7 +67,6 @@ export const AgendaPage: React.FC = () => {
         for (let j = i + 1; j < lista.length; j++) {
           const t1 = new Date(lista[i].data_instalacao).getTime();
           const t2 = new Date(lista[j].data_instalacao).getTime();
-          // Conflito se a diferença for menor que 2 horas (7200000 ms)
           if (Math.abs(t1 - t2) < 7200000) {
             conflitos.add(lista[i].pedido_id);
             conflitos.add(lista[j].pedido_id);
@@ -81,7 +78,6 @@ export const AgendaPage: React.FC = () => {
     return conflitos;
   }, [instalacoes]);
 
-  // Transições de status diretas da agenda: Iniciar e Concluir
   const handleUpdateStatus = async (pedidoId: string, novoStatus: StatusPedido) => {
     try {
       const { error } = await supabase
@@ -114,52 +110,55 @@ export const AgendaPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in text-slate-100">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <span className="text-[11px] font-extrabold tracking-widest text-slate-400 uppercase">
+            AGENDA TÉCNICA
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-0.5">
             Agenda & Instalações
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Alimentada pela view <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded font-mono text-purple-700">v_instalacoes</code> com detecção inteligente de conflitos
+          <p className="text-xs text-slate-400 mt-1">
+            Consumo da view <code className="px-1.5 py-0.5 rounded bg-white/[0.06] text-purple-300 font-mono text-xs">v_instalacoes</code> com detecção inteligente de sobreposição
           </p>
         </div>
 
         <button
           onClick={loadData}
           disabled={loading}
-          className="flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-semibold shadow-xs transition-colors self-start sm:self-auto"
+          className="flex items-center gap-2 px-3.5 py-2 bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08] rounded-xl text-xs font-semibold shadow-xs transition-colors self-start sm:self-auto"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-purple-600' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-purple-400' : ''}`} />
           Sincronizar
         </button>
       </div>
 
-      {/* Barra de Filtros e Busca */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+      {/* Barra de Filtros */}
+      <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.3)] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar por cliente, endereço ou técnico..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-          <span className="text-xs font-semibold text-slate-500 shrink-0">Filtrar por técnico:</span>
+          <span className="text-xs font-semibold text-slate-400 shrink-0">Técnico:</span>
           <button
             onClick={() => setSelectedTecnicoFilter('todos')}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
               selectedTecnicoFilter === 'todos'
                 ? 'bg-purple-600 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08]'
             }`}
           >
-            Todos os Técnicos
+            Todos
           </button>
           {tecnicos.map((t) => (
             <button
@@ -168,7 +167,7 @@ export const AgendaPage: React.FC = () => {
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 selectedTecnicoFilter === t.id
                   ? 'bg-purple-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08]'
               }`}
             >
               {t.nome}
@@ -181,11 +180,11 @@ export const AgendaPage: React.FC = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-44 bg-white border border-slate-200 rounded-2xl animate-pulse" />
+            <div key={i} className="h-44 bg-white/[0.02] border border-white/[0.06] rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filteredInstalacoes.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400">
+        <div className="rounded-2xl bg-[#121622]/80 backdrop-blur-xl border border-white/[0.08] p-12 text-center text-slate-400">
           <CalendarIcon className="w-10 h-10 mx-auto mb-2 opacity-30" />
           <p className="text-sm font-semibold">Nenhuma instalação ativa encontrada.</p>
         </div>
@@ -198,18 +197,17 @@ export const AgendaPage: React.FC = () => {
             return (
               <div
                 key={inst.pedido_id}
-                className={`bg-white rounded-2xl border p-5 shadow-xs transition-all flex flex-col justify-between ${
-                  hasConflict ? 'border-amber-300 ring-1 ring-amber-200' : 'border-slate-200 hover:border-slate-300'
+                className={`rounded-2xl bg-[#121622]/80 backdrop-blur-xl border p-5 shadow-[0_8px_30px_rgb(0,0,0,0.3)] transition-all flex flex-col justify-between ${
+                  hasConflict ? 'border-amber-400/50 ring-1 ring-amber-400/20' : 'border-white/[0.08] hover:border-white/[0.14]'
                 }`}
               >
                 <div className="space-y-3">
-                  {/* Header do Card */}
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <span className="font-mono text-[11px] text-slate-400">
                         #{inst.pedido_id.slice(0, 8)}
                       </span>
-                      <h3 className="font-bold text-base text-slate-900 leading-tight">
+                      <h3 className="font-bold text-base text-white leading-tight">
                         {inst.cliente_nome}
                       </h3>
                     </div>
@@ -223,29 +221,27 @@ export const AgendaPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Diferencial: Alerta de Sobreposição de Horários */}
                   {hasConflict && (
-                    <div className="flex items-center gap-1.5 p-2 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs font-medium">
-                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <div className="flex items-center gap-1.5 p-2 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-300 text-xs font-medium">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
                       <span>
-                        <b>Alerta Operacional:</b> Técnico com outro agendamento em janela próxima (&lt; 2h).
+                        <b>Alerta:</b> Conflito de horário detectado (&lt; 2h de intervalo).
                       </span>
                     </div>
                   )}
 
-                  {/* Detalhes da Visita */}
-                  <div className="space-y-1.5 text-xs text-slate-600">
+                  <div className="space-y-1.5 text-xs text-slate-300">
                     <p className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-purple-600 shrink-0" />
-                      <span className="font-semibold text-slate-900">
+                      <Clock className="w-4 h-4 text-purple-400 shrink-0" />
+                      <span className="font-semibold text-white">
                         {formatDateTime(inst.data_instalacao)}
                       </span>
                     </p>
 
                     <p className="flex items-center gap-2">
                       <User className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span>Técnico Responsável:</span>
-                      <span className="font-bold text-slate-800">
+                      <span>Técnico:</span>
+                      <span className="font-bold text-white">
                         {inst.tecnico_nome || 'A definir'}
                       </span>
                     </p>
@@ -255,20 +251,19 @@ export const AgendaPage: React.FC = () => {
                       <span>{formatPhone(inst.cliente_telefone)}</span>
                     </p>
 
-                    <p className="flex items-start gap-2 pt-1 text-slate-500">
-                      <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                    <p className="flex items-start gap-2 pt-1 text-slate-400">
+                      <MapPin className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                       <span className="line-clamp-2">{inst.endereco}</span>
                     </p>
                   </div>
                 </div>
 
-                {/* Footer com Total e Ações Rápidas */}
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                      Valor a Faturar
+                      Valor
                     </span>
-                    <span className="text-sm font-extrabold text-emerald-700">
+                    <span className="text-sm font-extrabold text-emerald-400">
                       {formatCurrency(inst.valor_total)}
                     </span>
                   </div>
@@ -278,10 +273,10 @@ export const AgendaPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleUpdateStatus(inst.pedido_id, 'em_andamento')}
-                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
                       >
                         <Play className="w-3.5 h-3.5" />
-                        Iniciar Instalação
+                        Iniciar
                       </button>
                     )}
 
@@ -289,10 +284,10 @@ export const AgendaPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleUpdateStatus(inst.pedido_id, 'concluido')}
-                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        Concluir e Faturar
+                        Concluir
                       </button>
                     )}
                   </div>
