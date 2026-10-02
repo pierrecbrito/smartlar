@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
           <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by product, client, or order..."
+            placeholder="Buscar por equipamento, cliente ou pedido..."
             className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200/80 rounded-full text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-xs transition-all"
           />
         </div>
@@ -78,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           type="button"
           onClick={() => showToast('info', 'Notificações', 'Nenhum alerta pendente no momento.')}
-          className="w-10 h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-colors relative"
+          className="w-10 h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-colors relative cursor-pointer"
           title="Notificações"
         >
           <Bell className="w-4 h-4" />
@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           type="button"
           onClick={onOpenConfig}
-          className="w-10 h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-colors relative"
+          className="w-10 h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-colors relative cursor-pointer"
           title="Configurações do Banco"
         >
           <Settings className="w-4 h-4" />
@@ -100,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
           />
         </button>
 
-        {/* User Profile Chip (Noah Brooks style -> Rafael Matos) */}
+        {/* User Profile Chip */}
         <div
           onClick={user ? handleLogout : onOpenAuth}
           className="flex items-center gap-2.5 bg-white border border-slate-200/80 rounded-full p-1 pr-3.5 shadow-xs hover:border-slate-300 transition-all cursor-pointer"
@@ -111,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div className="hidden sm:block text-left leading-tight">
             <p className="text-xs font-bold text-slate-900">Rafael Matos</p>
-            <p className="text-[10px] text-slate-400 font-medium">Store owner</p>
+            <p className="text-[10px] text-slate-400 font-medium">Administrador</p>
           </div>
           <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
         </div>

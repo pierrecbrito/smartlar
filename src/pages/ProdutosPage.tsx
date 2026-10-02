@@ -13,6 +13,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { Produto } from '../types/database';
 import { formatCurrency } from '../lib/utils';
+import { getProductImage } from '../lib/productImages';
 import { useToast } from '../components/Toast';
 
 export const ProdutosPage: React.FC = () => {
@@ -178,7 +179,7 @@ export const ProdutosPage: React.FC = () => {
             CATÁLOGO & PREÇOS
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5">
-            Catálogo de Produtos
+            Catálogo de Equipamentos
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Preços unitários protegidos por snapshot (reajustes não afetam pedidos passados)
@@ -210,7 +211,7 @@ export const ProdutosPage: React.FC = () => {
           <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Buscar por produto ou descrição..."
+            placeholder="Buscar por equipamento ou descrição..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 transition-all"
@@ -228,7 +229,7 @@ export const ProdutosPage: React.FC = () => {
                   : 'bg-white border border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
-              {cat}
+              {cat === 'todas' ? 'Todas as categorias' : cat}
             </button>
           ))}
         </div>
@@ -238,86 +239,100 @@ export const ProdutosPage: React.FC = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-44 bg-white border border-slate-200/80 rounded-3xl animate-pulse" />
+            <div key={i} className="h-72 bg-white border border-slate-200/80 rounded-3xl animate-pulse" />
           ))}
         </div>
       ) : filteredProdutos.length === 0 ? (
         <div className="rounded-3xl bg-white border border-slate-200/80 p-12 text-center text-slate-400 shadow-xs">
           <Package className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
-          <p className="text-sm font-semibold text-slate-600">Nenhum produto cadastrado com os critérios.</p>
+          <p className="text-sm font-semibold text-slate-600">Nenhum equipamento cadastrado com os critérios.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredProdutos.map((p) => (
-            <div
-              key={p.id}
-              className={`rounded-3xl bg-white border p-6 shadow-xs transition-all flex flex-col justify-between ${
-                p.ativo ? 'border-slate-200/80 hover:border-blue-200 hover:shadow-md' : 'border-slate-200/40 bg-slate-50/50 opacity-60'
-              }`}
-            >
-              <div>
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-bold text-sm text-slate-900 leading-tight">{p.nome}</h3>
-                  <span className="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
-                    {p.categoria}
-                  </span>
-                </div>
+          {filteredProdutos.map((p) => {
+            const realImg = getProductImage(p.nome, p.categoria);
 
-                {p.descricao && (
-                  <p className="text-xs text-slate-500 mt-2.5 line-clamp-2 leading-relaxed">
-                    {p.descricao}
-                  </p>
-                )}
-              </div>
-
-              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+            return (
+              <div
+                key={p.id}
+                className={`rounded-3xl bg-white border p-6 shadow-xs transition-all flex flex-col justify-between group ${
+                  p.ativo ? 'border-slate-200/80 hover:border-blue-200 hover:shadow-md' : 'border-slate-200/40 bg-slate-50/50 opacity-60'
+                }`}
+              >
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                    Preço Unitário
-                  </span>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-lg font-extrabold text-slate-900">
-                      {formatCurrency(p.preco_unitario)}
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-bold text-sm text-slate-900 leading-tight">{p.nome}</h3>
+                    <span className="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+                      {p.categoria}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingProduct(p);
-                        setNewPrice(p.preco_unitario.toString());
-                      }}
-                      className="text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
-                      title="Editar preço"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
                   </div>
+
+                  {/* Foto Real do Equipamento */}
+                  <div className="my-3.5 h-36 w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-100 relative group-hover:shadow-xs transition-all flex items-center justify-center">
+                    <img
+                      src={realImg}
+                      alt={p.nome}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  {p.descricao && (
+                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                      {p.descricao}
+                    </p>
+                  )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleToggleAtivo(p)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                    p.ativo
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                      : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'
-                  }`}
-                  title={p.ativo ? 'Desativar produto' : 'Ativar produto'}
-                >
-                  {p.ativo ? (
-                    <>
-                      <ToggleRight className="w-4 h-4 text-emerald-600" />
-                      <span>Ativo</span>
-                    </>
-                  ) : (
-                    <>
-                      <ToggleLeft className="w-4 h-4 text-slate-400" />
-                      <span>Inativo</span>
-                    </>
-                  )}
-                </button>
+                <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                      Preço Unitário
+                    </span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-lg font-extrabold text-slate-900">
+                        {formatCurrency(p.preco_unitario)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingProduct(p);
+                          setNewPrice(p.preco_unitario.toString());
+                        }}
+                        className="text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                        title="Editar preço"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleAtivo(p)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                      p.ativo
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                        : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'
+                    }`}
+                    title={p.ativo ? 'Desativar produto' : 'Ativar produto'}
+                  >
+                    {p.ativo ? (
+                      <>
+                        <ToggleRight className="w-4 h-4 text-emerald-600" />
+                        <span>Ativo</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="w-4 h-4 text-slate-400" />
+                        <span>Inativo</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -390,7 +405,7 @@ export const ProdutosPage: React.FC = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 <Plus className="w-4 h-4 text-blue-600" />
-                Cadastrar Novo Produto
+                Cadastrar Novo Equipamento
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
@@ -422,7 +437,7 @@ export const ProdutosPage: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="Segurança, Automação, Iluminação..."
+                  placeholder="Seguranca, Automacao, Iluminacao..."
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
@@ -469,7 +484,7 @@ export const ProdutosPage: React.FC = () => {
                   disabled={saving}
                   className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs cursor-pointer disabled:opacity-50"
                 >
-                  {saving ? 'Cadastrando...' : 'Salvar Produto'}
+                  {saving ? 'Cadastrando...' : 'Salvar Equipamento'}
                 </button>
               </div>
             </form>
