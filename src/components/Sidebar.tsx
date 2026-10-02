@@ -65,10 +65,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex flex-col items-center gap-6 w-full">
           <button
             onClick={() => handleSelect('dashboard')}
-            className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 hover:scale-105 transition-transform"
-            title="SmartLar PRO"
+            className="w-12 h-12 rounded-2xl bg-[#090d16] border border-slate-700/50 flex items-center justify-center p-1.5 shadow-md shadow-black/40 hover:scale-105 transition-transform overflow-hidden cursor-pointer"
+            title="SmartLar"
           >
-            <ShieldCheck className="w-5 h-5 text-white" />
+            <img src="/logo.png" alt="SmartLar Logo" className="w-full h-full object-contain" />
           </button>
 
           {/* Icon Navigation with Left Notch */}

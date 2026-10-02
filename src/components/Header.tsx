@@ -62,6 +62,10 @@ export const Header: React.FC<HeaderProps> = ({
           <Menu className="w-4 h-4" />
         </button>
 
+        <div className="lg:hidden flex items-center shrink-0">
+          <img src="/logo.png" alt="SmartLar" className="h-8 w-8 object-contain rounded-xl" />
+        </div>
+
         <div className="relative w-full">
           <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input

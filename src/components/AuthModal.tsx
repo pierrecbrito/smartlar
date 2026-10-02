@@ -57,8 +57,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-              {isSignUp ? <UserPlus className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+            <div className="w-10 h-10 rounded-xl bg-[#090d16] border border-slate-700/50 flex items-center justify-center p-1 overflow-hidden shrink-0">
+              <img src="/logo.png" alt="SmartLar" className="w-full h-full object-contain" />
             </div>
             <div>
               <h3 className="font-bold text-slate-800 text-base">
