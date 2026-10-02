@@ -22,7 +22,7 @@ export const AppContent: React.FC = () => {
   const { isConfigured } = getSupabaseConfig();
 
   return (
-    <div className="min-h-screen bg-[#eaecf2] text-slate-800 font-sans flex flex-col">
+    <div className="min-h-screen bg-[#d8dde8] text-slate-800 font-sans flex flex-col">
       {/* Slim Dark Icon Rail (iPad Mockup Style) */}
       <Sidebar
         currentTab={currentTab}
