@@ -222,8 +222,22 @@ export const ClientesPage: React.FC = () => {
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <span>Cadastrado em {formatDateTime(cliente.created_at)}</span>
-                <span className="text-blue-600 font-semibold group-hover:underline">Histórico</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const clean = cliente.telefone.replace(/\D/g, '');
+                    window.open(`https://wa.me/55${clean}`, '_blank');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-200 transition-colors"
+                  title="Abrir conversa no WhatsApp"
+                >
+                  <Phone className="w-3 h-3 text-emerald-600" />
+                  <span>WhatsApp</span>
+                </button>
+                <span className="text-blue-600 font-bold group-hover:underline">
+                  Ver Pedidos ➔
+                </span>
               </div>
             </div>
           ))}
