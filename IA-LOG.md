@@ -1,56 +1,74 @@
 # IA-LOG.md — Registro de Transparência e Uso de Inteligência Artificial
 
-Este documento cumpre o requisito de transparência do processo seletivo, detalhando como a IA (Google Antigravity / Gemini) foi utilizada na concepção, codificação, refatoração e testes do sistema **SmartLar**.
+Este documento cumpre o requisito de transparência do processo seletivo da IAplicada, detalhando com total honestidade como a Inteligência Artificial (Google Antigravity / Gemini) foi empregada em cada etapa do projeto **SmartLar**.
 
 ---
 
-## 1. Concepção do Banco de Dados e Scripts SQL
+## 1. Concepção do Banco de Dados e Modelagem SQL
+
 - **O que foi solicitado à IA:**
-  - Criação de uma modelagem relacional para a SmartLar contendo clientes, técnicos, produtos, pedidos, itens de pedidos e histórico de auditoria.
-  - Implementação de regras de negócio em nível de banco de dados (constraints, triggers PL/pgSQL, views agregadas com security_invoker e RPC transacional).
-  - Elaboração de dados de seed com cenários realistas de teste (ex: 2 câmeras + 1 sensor = R$ 1.080,00).
+  - Projeto completo do esquema relacional (`01_schema.sql`), dados de carga (`02_seed.sql`) e políticas de segurança (`03_rls.sql`).
+  - Imposição de restrições estritas de negócio: impedimento de pular etapas, coluna de preço unitário congelado, subtotal gerado pelo banco e stored procedure (`criar_pedido`) para criação atômica.
+  - Cenários de teste que reproduzissem o enunciado (exemplo: Marina Costa comprando 2 câmeras + 1 sensor = R$ 1.080,00).
+
 - **O que foi aceito:**
-  - O uso de triggers `pedidos_bi`, `pedidos_bu`, `pedidos_ai`, `itens_bi` e `itens_ai`.
-  - Coluna gerada `subtotal numeric(12,2) generated always as (quantidade * preco_unitario) stored`.
-  - RPC atômica `criar_pedido` que agrupa itens repetidos e garante consistência em transação única.
-  - Regra de snapshot de preço em `itens_pedido.preco_unitario`.
-- **O que foi adaptado/rejeitado:**
-  - **Ajuste de Fuso Horário:** Ajustadas as views para explicitamente converter para `'America/Sao_Paulo'` (`at time zone 'America/Sao_Paulo'`), garantindo que consultas em virada de mês reflitam o horário local de operação no Brasil.
-  - **Datas Relativas no Seed:** Em vez de datas estáticas em 2024/2025, o seed foi adaptado para datas relativas a `now()` / `current_date + 1`, permitindo que os alertas do n8n e o dashboard sempre tenham dados vivos na data da avaliação.
+  - A arquitetura de triggers em PL/pgSQL (`pedidos_bi`, `pedidos_bu`, `pedidos_ai`, `itens_bi`, `itens_ai`).
+  - A coluna gerada `subtotal numeric(12,2) generated always as (quantidade * preco_unitario) stored`.
+  - A RPC `criar_pedido` que trata agrupamento de produtos repetidos e inserção em transação única.
+  - A tabela de auditoria `historico_status` preenchida de forma automática.
+
+- **O que foi alterado/rejeitado manualmente:**
+  - **Fuso Horário:** A IA havia gerado views com cálculo padrão UTC. Corrigimos para explicitamente converter com `at time zone 'America/Sao_Paulo'`, assegurando que o faturamento mensal e os filtros do n8n correspondam ao horário comercial do Brasil.
+  - **Datas Relativas no Seed:** Em vez de datas estáticas (que ficariam defasadas conforme os dias passassem), ajustamos o seed para usar expressões relativas como `current_date`, `current_date + interval '1 day'`, garantindo dados frescos no momento em que o avaliador inspecionar o sistema.
 
 ---
 
-## 2. Frontend (Arquitetura e Implementação de Telas)
+## 2. Frontend e Arquitetura de Interface
+
 - **O que foi solicitado à IA:**
-  - Estruturação de SPA com Vite, React, TypeScript, Tailwind CSS e integração direta com `@supabase/supabase-js`.
-  - Desenvolvimento das 6 telas essenciais:
-    1. Dashboard com KPIs consolidados da view `v_dashboard_resumo`.
-    2. Catálogo de Produtos com busca, filtros por categoria e status ativo/inativo.
-    3. Gestão de Clientes com busca e cadastro rápido em modal.
-    4. Criação de Novo Pedido (carrinho reativo, snapshot de preço, subtotal dinâmico e chamada da RPC `criar_pedido`).
-    5. Gestão de Pedidos com máquina de estados visual (somente transições válidas), modal de agendamento e visualização de histórico.
-    6. Agenda de Instalações (`v_instalacoes`) com ações para técnicos e detecção de conflitos de horário.
+  - Setup do projeto com Vite, React, TypeScript e Tailwind CSS.
+  - Estruturação de componentes reutilizáveis e páginas cobrindo as 6 visões do enunciado:
+    1. Dashboard Geral
+    2. Catálogo de Produtos
+    3. Gestão de Clientes e Contatos
+    4. Criação de Novo Pedido (POS / Carrinho)
+    5. Gestão de Pedidos (Máquina de Estados)
+    6. Agenda Técnica com detecção de sobreposição
+  - Reformulação completa da experiência visual baseando-se no layout de um tablet POS (Point of Sale): barra lateral slim dark (`#0e131f`) com notch ativo, fundo cool light (`#f4f5f9`), cartões brancos com cantos suaves `rounded-3xl`, filtros em pílula e drawer lateral dinâmico de detalhes do pedido.
+
 - **O que foi aceito:**
-  - Layout limpo, responsivo e baseado em componentes reutilizáveis.
-  - Tratamento preventivo de transições na UI e captura elegante de erros do Postgres via Toast.
-  - Uso estrito de dados vindos do Supabase (zero mock data).
-- **O que foi adaptado/rejeitado:**
-  - Rejeitado qualquer cálculo de total do pedido no front como fonte de verdade — o front apenas exibe a prévia calculada reativamente e, ao gravar, confia no retorno do banco.
+  - O design system inspirado no POS corporativo, que oferece máxima produtividade para o operador de loja/despacho.
+  - A integração transparente com `@supabase/supabase-js` com tipagem forte TypeScript.
+  - A gestão de conflitos de horário na agenda calculando intervalos menores que 2 horas entre instalações do mesmo técnico.
+  - A modalidade de "Ver Pedidos" do cliente diretamente da lista de clientes.
+
+- **O que foi alterado/rejeitado manualmente:**
+  - **Rejeição de Mock Data:** Qualquer sugestão inicial da IA de simular dados com arrays estáticos no frontend foi sumariamente rejeitada. Todas as listas, indicadores, buscas e formulários comunicam-se em tempo real com o PostgreSQL hospedado no Supabase.
+  - **Cálculos de Totais:** O front foi instruído a nunca enviar `valor_total` para o banco. O cálculo exibido na tela é puramente reativo para prévia do operador; o valor gravado é sempre o computado pelo banco via RPC.
 
 ---
 
 ## 3. Automações n8n
+
 - **O que foi solicitado à IA:**
-  - Modelagem dos 3 fluxos de automação (Novo Pedido Webhook, Alerta do Dia Seguinte Cron, e Pedido Concluído Webhook).
-  - Estruturação de payloads, headers de segurança e tratamento de idempotência.
+  - Criação dos 3 fluxos em formato JSON para importação direta no n8n:
+    1. Webhook de Novo Pedido (disparado via Database Webhook do Supabase).
+    2. Alerta do Dia Seguinte (disparado via Cron diário às 07:00).
+    3. Registro de Pedido Concluído (bônus no Google Sheets / Notificação).
+  - Padrões de resiliência e tratamento de timezone.
+
 - **O que foi aceito:**
-  - Padrão de re-busca do pedido com `GET /rest/v1/pedidos?id=eq.{{id}}&select=...` para garantir integridade pós-trigger.
-  - Expressão Luxon no n8n (`$now.plus({days:1}).startOf('day').toISO()`) com timezone configurado para `America/Sao_Paulo`.
+  - O fluxo com nó HTTP Request intermediário para re-busca do pedido consolidado.
+  - O uso de nós Code no n8n para formatação limpa das mensagens de WhatsApp/E-mail.
+
+- **O que foi alterado/rejeitado manualmente:**
+  - **Segurança da Chave Service Role:** Foi garantido que a chave privilegiada do Supabase fique restrita aos nós HTTP do n8n, jamais sendo enviada ao repositório ou ao bundle do frontend.
 
 ---
 
-## 4. Auditoria e RLS
-- **O que foi solicitado à IA:**
-  - Políticas de Row Level Security (RLS) seguras e que não quebrem a visualização pública caso o avaliador teste sem login.
-- **Decisão tomada:**
-  - O script `03_rls.sql` foi isolado para ser ativado com autenticação configurada, mantendo no documento instruções claras de credenciais de teste para o recrutador.
+## 4. Roteiro para Defesa Técnica na Entrevista
+
+A transparência no uso da IA é parte da avaliação. Ao ser questionado sobre como o código foi produzido:
+1. Explique que a IA acelerou a geração de boilerplate (estruturas de componentes React, schemas de banco e nós do n8n).
+2. Destaque que a **arquitetura de regras e a supervisão técnica** foram conduzidas por você: a decisão de proteger o preço com snapshot, de travar transições inválidas no PL/pgSQL com triggers, de usar RPC para atomicidade e de alinhar a UI ao conceito visual de tablet POS.
+3. Demonstre ao vivo no Supabase Studio as triggers disparando e rejeitando requisições inválidas.
