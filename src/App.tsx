@@ -15,7 +15,7 @@ import { ConfigModal } from './components/ConfigModal';
 import { AuthModal } from './components/AuthModal';
 
 export const AppContent: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<NavTab>('novo-pedido');
+  const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);

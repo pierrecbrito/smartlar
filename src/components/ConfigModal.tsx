@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Database, Key, Check, AlertCircle, X } from 'lucide-react';
 import { getSupabaseConfig, setSupabaseConfig, clearSupabaseConfig } from '../lib/supabase';
+import { ModalPortal } from './ModalPortal';
 
 interface ConfigModalProps {
   isOpen: boolean;
@@ -35,7 +36,8 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <ModalPortal>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
       <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
@@ -131,5 +133,6 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 };

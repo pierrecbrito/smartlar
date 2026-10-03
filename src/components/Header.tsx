@@ -2,29 +2,22 @@ import React, { useState, useEffect } from 'react';
 import {
   Menu,
   Search,
-  Bell,
-  Mail,
   Settings,
-  ChevronDown,
-  User,
-  Plus,
-  FileDown
+  ChevronDown
 } from 'lucide-react';
 import { NavTab } from './Navbar';
 import { supabase, getSupabaseConfig } from '../lib/supabase';
 import { useToast } from './Toast';
 
 interface HeaderProps {
-  currentTab: NavTab;
-  onTabChange: (tab: NavTab) => void;
+  currentTab?: NavTab;
+  onTabChange?: (tab: NavTab) => void;
   onOpenSidebar: () => void;
   onOpenConfig: () => void;
   onOpenAuth: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  currentTab,
-  onTabChange,
   onOpenSidebar,
   onOpenConfig,
   onOpenAuth,
@@ -77,46 +70,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Right Actions: Akino Action Buttons (+ Add Project / Import Data) + User Profile */}
+      {/* Right Actions: DB Config + User Profile */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* "+ Novo Pedido" Pill Button (in vibrant blue from Akino!) */}
-        <button
-          onClick={() => onTabChange('novo-pedido')}
-          className="hidden md:flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs font-bold shadow-sm shadow-blue-500/25 transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Novo Pedido</span>
-        </button>
-
-        {/* "Exportar / Dados" Pill Button */}
-        <button
-          onClick={() => showToast('info', 'Exportação', 'Relatório consolidado pronto para download.')}
-          className="hidden xl:flex items-center gap-1.5 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-full text-xs font-bold shadow-xs transition-all cursor-pointer"
-        >
-          <FileDown className="w-3.5 h-3.5 text-slate-500" />
-          <span>Exportar Dados</span>
-        </button>
-
-        {/* Mensagens / Suporte */}
-        <button
-          type="button"
-          onClick={() => showToast('info', 'Mensagens', 'Caixa de mensagens com técnicos sincronizada.')}
-          className="w-10 h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-colors relative cursor-pointer hidden sm:flex"
-          title="Mensagens"
-        >
-          <Mail className="w-4 h-4 text-slate-500" />
-        </button>
-
-        {/* Notification Bell Pill */}
-        <button
-          type="button"
-          onClick={() => showToast('info', 'Notificações', '1 instalação agendada para amanhã pelo n8n.')}
-          className="w-10 h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-colors relative cursor-pointer"
-          title="Notificações"
-        >
-          <Bell className="w-4 h-4 text-slate-500" />
-          <span className="w-2 h-2 rounded-full bg-blue-600 absolute top-2.5 right-2.5 ring-2 ring-white" />
-        </button>
 
         {/* Settings / DB Config */}
         <button

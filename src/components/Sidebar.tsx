@@ -139,32 +139,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </nav>
           </div>
         </div>
-
-        {/* Bottom Card: "SmartLar Mobile App" (Exact Akino style mini card) */}
-        <div className="p-4 border-t border-slate-100">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 text-white p-4 shadow-sm shadow-blue-500/20">
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-8 h-8 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center">
-                <Smartphone className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-[10px] font-extrabold uppercase bg-white/20 px-2 py-0.5 rounded-full">
-                App Campo
-              </span>
-            </div>
-
-            <h4 className="font-extrabold text-xs leading-tight">SmartLar Mobile</h4>
-            <p className="text-[11px] text-blue-100 mt-1 leading-snug">
-              Acesso rápido para os técnicos realizarem checklists em campo.
-            </p>
-
-            <button
-              onClick={() => handleSelect('agenda')}
-              className="mt-3 w-full py-2 bg-white text-blue-700 hover:bg-blue-50 font-bold rounded-2xl text-xs transition-all shadow-xs text-center cursor-pointer"
-            >
-              Abrir Agenda Técnica
-            </button>
-          </div>
-        </div>
       </aside>
     </>
   );

@@ -13,8 +13,8 @@ import {
 import { supabase } from '../lib/supabase';
 import { Produto } from '../types/database';
 import { formatCurrency } from '../lib/utils';
-import { getProductImage } from '../lib/productImages';
 import { useToast } from '../components/Toast';
+import { ModalPortal } from '../components/ModalPortal';
 
 export const ProdutosPage: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -235,11 +235,11 @@ export const ProdutosPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Grid de Produtos */}
+      {/* Tabela Vertical de Produtos (Sem imagens, com colunas verticais e alta legibilidade) */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-xs overflow-hidden p-6 space-y-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-72 bg-white border border-slate-200/80 rounded-3xl animate-pulse" />
+            <div key={i} className="h-14 bg-slate-100/80 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filteredProdutos.length === 0 ? (
@@ -248,248 +248,282 @@ export const ProdutosPage: React.FC = () => {
           <p className="text-sm font-semibold text-slate-600">Nenhum equipamento cadastrado com os critérios.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredProdutos.map((p) => {
-            const realImg = getProductImage(p.nome, p.categoria);
+        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200/80 bg-slate-50/70 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider divide-x divide-slate-100">
+                  <th className="py-4 px-4 w-14 text-center">#</th>
+                  <th className="py-4 px-6 w-1/4">Produto / Equipamento</th>
+                  <th className="py-4 px-6">Descrição</th>
+                  <th className="py-4 px-4 whitespace-nowrap">Categoria</th>
+                  <th className="py-4 px-5 text-right whitespace-nowrap">Preço Unitário</th>
+                  <th className="py-4 px-4 text-center whitespace-nowrap">Status</th>
+                  <th className="py-4 px-6 text-right whitespace-nowrap">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {filteredProdutos.map((p, index) => (
+                  <tr
+                    key={p.id}
+                    className={`hover:bg-blue-50/30 transition-colors group divide-x divide-slate-100 ${
+                      !p.ativo ? 'bg-slate-50/40 opacity-70' : ''
+                    }`}
+                  >
+                    {/* Número / Posição vertical */}
+                    <td className="py-4 px-4 text-center font-mono text-xs font-bold text-slate-400 group-hover:text-blue-600 transition-colors">
+                      {String(index + 1).padStart(2, '0')}
+                    </td>
 
-            return (
-              <div
-                key={p.id}
-                className={`rounded-3xl bg-white border p-6 shadow-xs transition-all flex flex-col justify-between group ${
-                  p.ativo ? 'border-slate-200/80 hover:border-blue-200 hover:shadow-md' : 'border-slate-200/40 bg-slate-50/50 opacity-60'
-                }`}
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-sm text-slate-900 leading-tight">{p.nome}</h3>
-                    <span className="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
-                      {p.categoria}
-                    </span>
-                  </div>
+                    {/* Nome do Produto (Sem imagem) */}
+                    <td className="py-4 px-6">
+                      <p className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">
+                        {p.nome}
+                      </p>
+                    </td>
 
-                  {/* Foto Real do Equipamento */}
-                  <div className="my-3.5 h-36 w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-100 relative group-hover:shadow-xs transition-all flex items-center justify-center">
-                    <img
-                      src={realImg}
-                      alt={p.nome}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  </div>
+                    {/* Descrição */}
+                    <td className="py-4 px-6">
+                      {p.descricao ? (
+                        <p className="text-xs text-slate-500 leading-relaxed max-w-xl">
+                          {p.descricao}
+                        </p>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Sem descrição</span>
+                      )}
+                    </td>
 
-                  {p.descricao && (
-                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                      {p.descricao}
-                    </p>
-                  )}
-                </div>
+                    {/* Categoria */}
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <span className="text-[10px] uppercase font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200/80">
+                        {p.categoria}
+                      </span>
+                    </td>
 
-                <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                      Preço Unitário
-                    </span>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-lg font-extrabold text-slate-900">
+                    {/* Preço Unitário */}
+                    <td className="py-4 px-5 text-right whitespace-nowrap">
+                      <span className="font-extrabold text-slate-900 text-sm">
                         {formatCurrency(p.preco_unitario)}
                       </span>
+                    </td>
+
+                    {/* Status Ativo/Inativo */}
+                    <td className="py-4 px-4 text-center whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAtivo(p)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                          p.ativo
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                            : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'
+                        }`}
+                        title={p.ativo ? 'Clique para desativar produto' : 'Clique para ativar produto'}
+                      >
+                        {p.ativo ? (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>Ativo</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                            <span>Inativo</span>
+                          </>
+                        )}
+                      </button>
+                    </td>
+
+                    {/* Ações */}
+                    <td className="py-4 px-6 text-right whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => {
                           setEditingProduct(p);
                           setNewPrice(p.preco_unitario.toString());
                         }}
-                        className="text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
-                        title="Editar preço"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 hover:bg-blue-50 border border-slate-200/80 hover:border-blue-200 rounded-xl transition-all cursor-pointer shadow-xs"
+                        title="Editar Preço"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
+                        <span>Editar Preço</span>
                       </button>
-                    </div>
-                  </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleToggleAtivo(p)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                      p.ativo
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                        : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'
-                    }`}
-                    title={p.ativo ? 'Desativar produto' : 'Ativar produto'}
-                  >
-                    {p.ativo ? (
-                      <>
-                        <ToggleRight className="w-4 h-4 text-emerald-600" />
-                        <span>Ativo</span>
-                      </>
-                    ) : (
-                      <>
-                        <ToggleLeft className="w-4 h-4 text-slate-400" />
-                        <span>Inativo</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {/* Rodapé Informativo */}
+          <div className="px-6 py-3.5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>
+              Mostrando <b>{filteredProdutos.length}</b> {filteredProdutos.length === 1 ? 'produto cadastrado' : 'produtos cadastrados'}
+            </span>
+            <span className="text-[11px] text-slate-400">
+              Snapshot de Preço: alterações de valor não afetam pedidos passados
+            </span>
+          </div>
         </div>
       )}
 
       {/* Modal Editar Preço */}
       {editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <Edit2 className="w-4 h-4 text-blue-600" />
-                Editar Preço do Produto
-              </h3>
-              <button
-                onClick={() => setEditingProduct(null)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSavePrice} className="p-6 space-y-4">
-              <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl">
-                <p className="font-bold text-slate-900 text-sm">{editingProduct.nome}</p>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  💡 Atualizar o preço no catálogo não afeta pedidos passados (snapshot de preço preservado).
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Novo Preço Unitário (R$) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  autoFocus
-                  placeholder="Ex: 480.00"
-                  value={newPrice}
-                  onChange={(e) => setNewPrice(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-base font-extrabold text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <Edit2 className="w-4 h-4 text-blue-600" />
+                  Editar Preço do Produto
+                </h3>
                 <button
-                  type="button"
                   onClick={() => setEditingProduct(null)}
-                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingPrice}
-                  className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                >
-                  <Check className="w-4 h-4" />
-                  {savingPrice ? 'Salvando...' : 'Salvar Preço'}
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleSavePrice} className="p-6 space-y-4">
+                <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl">
+                  <p className="font-bold text-slate-900 text-sm">{editingProduct.nome}</p>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    💡 Atualizar o preço no catálogo não afeta pedidos passados (snapshot de preço preservado).
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Novo Preço Unitário (R$) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    placeholder="Ex: 480.00"
+                    value={newPrice}
+                    onChange={(e) => setNewPrice(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-base font-extrabold text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+
+                <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setEditingProduct(null)}
+                    className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingPrice}
+                    className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Check className="w-4 h-4" />
+                    {savingPrice ? 'Salvando...' : 'Salvar Preço'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* Modal Cadastro de Produto */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <Plus className="w-4 h-4 text-blue-600" />
-                Cadastrar Novo Equipamento
-              </h3>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Nome do Dispositivo *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Câmera Speed Dome 4K"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Categoria *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Seguranca, Automacao, Iluminacao..."
-                  value={categoria}
-                  onChange={(e) => setCategoria(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Preço Unitário (R$) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: 450.00"
-                  value={preco}
-                  onChange={(e) => setPreco(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Descrição Técnica
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Especificações, conectividade..."
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-blue-600" />
+                  Cadastrar Novo Equipamento
+                </h3>
                 <button
-                  type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs cursor-pointer disabled:opacity-50"
-                >
-                  {saving ? 'Cadastrando...' : 'Salvar Equipamento'}
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleCreate} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Nome do Dispositivo *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: Câmera Speed Dome 4K"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Categoria *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Seguranca, Automacao, Iluminacao..."
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Preço Unitário (R$) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: 450.00"
+                    value={preco}
+                    onChange={(e) => setPreco(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Descrição Técnica
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Especificações, conectividade..."
+                    value={descricao}
+                    onChange={(e) => setDescricao(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setModalOpen(false)}
+                    className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {saving ? 'Cadastrando...' : 'Salvar Equipamento'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

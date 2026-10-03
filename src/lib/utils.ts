@@ -51,7 +51,7 @@ export function formatPhone(phone: string | null | undefined): string {
 
 export const STATUS_CONFIG: Record<
   StatusPedido,
-  { label: string; bg: string; text: string; border: string; desc: string }
+  { label: string; bg: string; text: string; border: string; desc: string; dot: string }
 > = {
   orcamento: {
     label: 'Orçamento',
@@ -59,6 +59,7 @@ export const STATUS_CONFIG: Record<
     text: 'text-amber-800',
     border: 'border-amber-200',
     desc: 'Aguardando aprovação do cliente',
+    dot: 'bg-amber-500',
   },
   aprovado: {
     label: 'Aprovado',
@@ -66,6 +67,7 @@ export const STATUS_CONFIG: Record<
     text: 'text-blue-800',
     border: 'border-blue-200',
     desc: 'Pendente de agendamento de técnico e data',
+    dot: 'bg-blue-500',
   },
   agendado: {
     label: 'Agendado',
@@ -73,6 +75,7 @@ export const STATUS_CONFIG: Record<
     text: 'text-purple-800',
     border: 'border-purple-200',
     desc: 'Técnico e data alocados',
+    dot: 'bg-purple-500',
   },
   em_andamento: {
     label: 'Em Andamento',
@@ -80,6 +83,7 @@ export const STATUS_CONFIG: Record<
     text: 'text-indigo-800',
     border: 'border-indigo-200',
     desc: 'Técnico executando o serviço no local',
+    dot: 'bg-indigo-500',
   },
   concluido: {
     label: 'Concluído',
@@ -87,6 +91,7 @@ export const STATUS_CONFIG: Record<
     text: 'text-emerald-800',
     border: 'border-emerald-200',
     desc: 'Instalação finalizada e faturada',
+    dot: 'bg-emerald-500',
   },
   cancelado: {
     label: 'Cancelado',
@@ -94,6 +99,7 @@ export const STATUS_CONFIG: Record<
     text: 'text-rose-800',
     border: 'border-rose-200',
     desc: 'Pedido cancelado',
+    dot: 'bg-rose-500',
   },
 };
 
