@@ -62,14 +62,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Top Header Bar */}
-      <div className="w-full max-w-md sm:max-w-xl mx-auto flex items-center justify-between z-10 pt-2">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/25 shrink-0">
+      {/* Top Header Bar (Centered) */}
+      <div className="w-full max-w-md mx-auto flex items-center justify-center z-10 pt-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/25 shrink-0">
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
-          <div>
-            <h1 className="font-extrabold text-base text-slate-900 tracking-tight leading-none">
+          <div className="text-left">
+            <h1 className="font-extrabold text-lg text-slate-900 tracking-tight leading-none">
               SMART<span className="text-blue-600">LAR</span>
             </h1>
             <span className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase block mt-0.5">
