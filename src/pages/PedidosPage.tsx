@@ -457,7 +457,7 @@ export const PedidosPage: React.FC = () => {
                     isOver
                       ? 'border-blue-500 bg-blue-50/60 ring-2 ring-blue-500/30 shadow-md'
                       : isAllowedTarget
-                      ? 'border-emerald-400 bg-emerald-50/20 ring-2 ring-emerald-400/20 shadow-xs'
+                      ? 'border-blue-400 bg-blue-50/30 ring-2 ring-blue-400/20 shadow-xs'
                       : isDisallowedTarget
                       ? 'opacity-40 border-dashed border-slate-300 bg-slate-100/40 select-none'
                       : 'bg-slate-100/70 border-slate-200/80 hover:border-slate-300'
@@ -467,7 +467,7 @@ export const PedidosPage: React.FC = () => {
                   <div
                     className={`p-3.5 border-b rounded-t-2xl flex items-center justify-between transition-colors ${
                       isAllowedTarget
-                        ? 'border-emerald-200 bg-emerald-100/50'
+                        ? 'border-blue-200 bg-blue-100/60'
                         : 'border-slate-200/80 bg-white/70 backdrop-blur-xs'
                     }`}
                   >
@@ -483,7 +483,7 @@ export const PedidosPage: React.FC = () => {
 
                     <div className="flex items-center gap-1.5">
                       {isAllowedTarget && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-white/95 px-2 py-0.5 rounded-full border border-emerald-300 shadow-2xs animate-pulse">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-white/95 px-2 py-0.5 rounded-full border border-blue-300 shadow-2xs animate-pulse">
                           <ArrowRight className="w-2.5 h-2.5" /> Próxima fase
                         </span>
                       )}
@@ -634,7 +634,7 @@ export const PedidosPage: React.FC = () => {
                                         key={nextStatus}
                                         type="button"
                                         onClick={() => handleTransitionStatus(pedido, 'agendado')}
-                                        className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                        className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
                                         title="Agendar Técnico"
                                       >
                                         <Calendar className="w-3 h-3" />
@@ -648,7 +648,7 @@ export const PedidosPage: React.FC = () => {
                                         key={nextStatus}
                                         type="button"
                                         onClick={() => handleTransitionStatus(pedido, 'em_andamento')}
-                                        className="px-2 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                        className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
                                         title="Iniciar Instalação"
                                       >
                                         <Play className="w-3 h-3" />
@@ -662,7 +662,7 @@ export const PedidosPage: React.FC = () => {
                                         key={nextStatus}
                                         type="button"
                                         onClick={() => handleTransitionStatus(pedido, 'concluido')}
-                                        className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                        className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
                                         title="Concluir Instalação"
                                       >
                                         <CheckCircle2 className="w-3 h-3" />
@@ -830,7 +830,7 @@ export const PedidosPage: React.FC = () => {
                             key={nextStatus}
                             type="button"
                             onClick={() => handleTransitionStatus(pedido, 'agendado')}
-                            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
                           >
                             <Calendar className="w-4 h-4" />
                             Agendar
@@ -844,7 +844,7 @@ export const PedidosPage: React.FC = () => {
                             key={nextStatus}
                             type="button"
                             onClick={() => handleTransitionStatus(pedido, 'em_andamento')}
-                            className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
                           >
                             <Play className="w-4 h-4" />
                             Iniciar
@@ -858,7 +858,7 @@ export const PedidosPage: React.FC = () => {
                             key={nextStatus}
                             type="button"
                             onClick={() => handleTransitionStatus(pedido, 'concluido')}
-                            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
                           >
                             <CheckCircle2 className="w-4 h-4" />
                             Concluir

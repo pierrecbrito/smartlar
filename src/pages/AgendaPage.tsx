@@ -424,7 +424,7 @@ export const AgendaPage: React.FC = () => {
     }
   };
 
-  // Helper de estilização dos cards no estilo Google Calendar
+  // Helper de estilização dos cards no estilo Google Calendar (Padronizado no Azul do Sistema)
   const getEventBadgeStyle = (status: StatusPedido) => {
     switch (status) {
       case 'agendado':
@@ -435,15 +435,15 @@ export const AgendaPage: React.FC = () => {
         };
       case 'em_andamento':
         return {
-          card: 'bg-amber-50/95 border-l-4 border-l-amber-500 border-amber-200/90 text-amber-950 hover:bg-amber-100/90 shadow-2xs',
-          timeBadge: 'bg-amber-600 text-white',
-          dot: 'bg-amber-500',
+          card: 'bg-blue-50/95 border-l-4 border-l-blue-600 border-blue-200/90 text-blue-950 hover:bg-blue-100/90 shadow-2xs',
+          timeBadge: 'bg-blue-600 text-white',
+          dot: 'bg-blue-600',
         };
       case 'concluido':
         return {
-          card: 'bg-emerald-50/95 border-l-4 border-l-emerald-600 border-emerald-200/90 text-emerald-950 hover:bg-emerald-100/90 shadow-2xs',
-          timeBadge: 'bg-emerald-600 text-white',
-          dot: 'bg-emerald-600',
+          card: 'bg-blue-50/95 border-l-4 border-l-blue-600 border-blue-200/90 text-blue-950 hover:bg-blue-100/90 shadow-2xs',
+          timeBadge: 'bg-blue-600 text-white',
+          dot: 'bg-blue-600',
         };
       default:
         return {
@@ -603,7 +603,7 @@ export const AgendaPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleOpenReschedule(pedidosSemData[0])}
-            className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-colors shrink-0 cursor-pointer"
+            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors shrink-0 cursor-pointer"
           >
             Agendar Agora
           </button>
@@ -1167,7 +1167,7 @@ export const AgendaPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={(e) => handleUpdateStatus(selectedEvent.id, 'em_andamento', e)}
-                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                   >
                     <Play className="w-3.5 h-3.5" />
                     Iniciar Instalação
@@ -1178,7 +1178,7 @@ export const AgendaPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={(e) => handleUpdateStatus(selectedEvent.id, 'concluido', e)}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Concluir Instalação

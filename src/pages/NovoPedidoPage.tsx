@@ -773,7 +773,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                             onClick={() => setDescontoPercentual(pct)}
                             className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
                               descontoPercentual === pct
-                                ? 'bg-emerald-600 text-white shadow-2xs'
+                                ? 'bg-blue-600 text-white shadow-2xs'
                                 : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                             }`}
                           >
@@ -990,7 +990,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                             onClick={() => setDescontoPercentual(pct)}
                             className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
                               descontoPercentual === pct
-                                ? 'bg-emerald-600 text-white shadow-2xs'
+                                ? 'bg-blue-600 text-white shadow-2xs'
                                 : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                             }`}
                           >
