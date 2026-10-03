@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  Search,
-  X,
   Phone,
   MessageSquare,
   Copy,
@@ -43,7 +41,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [tecnicos, setTecnicos] = useState<Tecnico[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchConsulta, setSearchConsulta] = useState('');
 
   const { showToast } = useToast();
 
@@ -246,19 +243,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     return `https://wa.me/55${limpo}?text=${encodeURIComponent(msg)}`;
   };
 
-  const pedidosConsultaFiltrados = useMemo(() => {
-    if (!searchConsulta.trim()) return [];
-    const termo = searchConsulta.toLowerCase();
-    const termoClean = termo.replace('#', '');
-    return pedidos.filter(
-      (p) =>
-        p.numero_pedido?.toString().includes(termoClean) ||
-        p.id.toLowerCase().includes(termo) ||
-        p.cliente?.nome?.toLowerCase().includes(termo) ||
-        p.cliente?.telefone?.includes(termo) ||
-        p.tecnico?.nome?.toLowerCase().includes(termo)
-    );
-  }, [pedidos, searchConsulta]);
+
 
   return (
     <div className="space-y-6 animate-fade-in text-slate-800 pb-16">
@@ -300,85 +285,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* BUSCA RÁPIDA DE STATUS DE CLIENTE (QUANDO O CLIENTE LIGA)                 */}
-      {/* ========================================================================= */}
-      <div className="rounded-2xl bg-white border border-slate-200/90 p-3.5 shadow-2xs">
-        <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Cliente ligou perguntando status? Digite o nome, telefone ou ID para ver imediatamente..."
-            value={searchConsulta}
-            onChange={(e) => setSearchConsulta(e.target.value)}
-            className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-          />
-          {searchConsulta && (
-            <button
-              onClick={() => setSearchConsulta('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
 
-        {/* Resultados da Busca Rápida */}
-        {searchConsulta.trim() && (
-          <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
-            {pedidosConsultaFiltrados.length === 0 ? (
-              <p className="text-xs text-slate-400 py-2 text-center">
-                Nenhum pedido encontrado para "{searchConsulta}".
-              </p>
-            ) : (
-              pedidosConsultaFiltrados.slice(0, 3).map((p) => {
-                const conf = STATUS_CONFIG[p.status];
-                return (
-                  <div
-                    key={p.id}
-                    className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-xs text-slate-900">
-                          {p.cliente?.nome}
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                          {conf.label}
-                        </span>
-                        <span className="font-mono text-[11px] text-slate-500 font-bold">
-                          {formatOrderCode(p)}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Tel: {formatPhone(p.cliente?.telefone)} • Endereço: {p.cliente?.endereco}
-                      </p>
-                      {p.tecnico && (
-                        <p className="text-[11px] text-slate-600 mt-0.5 font-semibold">
-                          🛠️ Técnico: {p.tecnico.nome}{' '}
-                          {p.data_instalacao && `• 📅 ${formatDateTime(p.data_instalacao)}`}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs font-extrabold text-slate-900">
-                        {formatCurrency(p.valor_total)}
-                      </span>
-                      <button
-                        onClick={() => onNavigate('pedidos')}
-                        className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-blue-600 transition-colors cursor-pointer"
-                      >
-                        Ver no Kanban
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        )}
-      </div>
 
       {/* ========================================================================= */}
       {/* REQUISITO 1: INDICADORES NO TOPO                                          */}

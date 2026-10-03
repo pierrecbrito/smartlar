@@ -561,7 +561,7 @@ export const AgendaPage: React.FC = () => {
             onClick={loadData}
             disabled={loading}
             className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
-            title="Sincronizar com banco de dados"
+            title="Atualizar agenda"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-600' : ''}`} />
           </button>

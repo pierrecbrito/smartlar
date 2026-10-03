@@ -162,7 +162,7 @@ export const ClientesPage: React.FC = () => {
             Clientes & Contatos
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Gestão centralizada de clientes, endereços de instalação e histórico de pedidos em tabela vertical
+            Gestão centralizada de clientes, endereços de atendimento e histórico de pedidos
           </p>
         </div>
 

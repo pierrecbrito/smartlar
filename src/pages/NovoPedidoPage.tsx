@@ -333,7 +333,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
       setDescontoPercentual(0);
     } catch (err: any) {
       console.error('Erro ao criar pedido via RPC:', err);
-      showToast('error', 'Erro do Banco de Dados', err.message || 'Falha ao registrar o pedido.');
+      showToast('error', 'Falha ao registrar pedido', err.message || 'Não foi possível salvar o pedido.');
     } finally {
       setSubmitting(false);
     }
@@ -1155,10 +1155,10 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
 
               <div>
                 <h3 className="font-extrabold text-lg text-slate-900">
-                  Orçamento Gravado no PostgreSQL!
+                  Orçamento Salvo com Sucesso!
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Operação atômica executada com sucesso via stored procedure <code className="text-blue-700 font-mono">criar_pedido</code>.
+                  O pedido foi gerado e registrado no sistema com sucesso.
                 </p>
               </div>
 
@@ -1176,7 +1176,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                   <span className="font-bold text-slate-900">{createdOrderSummary.itensCount} produtos</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-slate-200 font-extrabold text-sm">
-                  <span className="text-slate-900">Valor Total do Banco:</span>
+                  <span className="text-slate-900">Valor Total:</span>
                   <span className="text-emerald-600">{formatCurrency(createdOrderSummary.valor_total)}</span>
                 </div>
               </div>

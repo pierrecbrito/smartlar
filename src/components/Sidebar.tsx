@@ -128,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <div className="flex items-center gap-3">
                   <Database className="w-4 h-4 text-slate-400" />
-                  <span>Configuração DB</span>
+                  <span>Configurações</span>
                 </div>
                 <span
                   className={`w-2 h-2 rounded-full ${

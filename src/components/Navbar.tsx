@@ -125,10 +125,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
                 Novo Pedido
               </button>
 
-              {/* Supabase Status Pill */}
+              {/* Status Pill */}
               <button
                 onClick={() => setConfigModalOpen(true)}
-                title="Configurações de Conexão Supabase"
+                title="Configurações de Conexão"
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                   isConfigured
                     ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100/70'
@@ -137,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
               >
                 <Database className="w-3.5 h-3.5" />
                 <span className="hidden lg:inline">
-                  {isConfigured ? 'Supabase Conectado' : 'Conectar Supabase'}
+                  {isConfigured ? 'Sistema Conectado' : 'Conectar Sistema'}
                 </span>
                 <span className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-emerald-500' : 'bg-amber-500'}`} />
               </button>

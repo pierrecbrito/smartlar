@@ -182,7 +182,7 @@ export const ProdutosPage: React.FC = () => {
             Catálogo de Equipamentos
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Preços unitários protegidos por snapshot (reajustes não afetam pedidos passados)
+            Reajustes de preços não afetam orçamentos e pedidos já realizados
           </p>
         </div>
 
@@ -388,7 +388,7 @@ export const ProdutosPage: React.FC = () => {
                 <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl">
                   <p className="font-bold text-slate-900 text-sm">{editingProduct.nome}</p>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    💡 Atualizar o preço no catálogo não afeta pedidos passados (snapshot de preço preservado).
+                    💡 Atualizar o preço no catálogo não altera orçamentos ou pedidos já criados.
                   </p>
                 </div>
 

@@ -188,8 +188,8 @@ export const PedidosPage: React.FC = () => {
       console.error('Erro na transição:', err);
       showToast(
         'error',
-        'Transição recusada pelo banco de dados',
-        err.message || 'Verifique as regras de fluxo do PostgreSQL.'
+        'Transição de status não permitida',
+        err.message || 'Verifique as regras de fluxo do pedido.'
       );
     }
   };
@@ -271,13 +271,13 @@ export const PedidosPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <span className="text-[11px] font-extrabold tracking-widest text-slate-400 uppercase">
-            MÁQUINA DE ESTADOS
+            FLUXO OPERACIONAL
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5">
             Gestão de Pedidos
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Transições blindadas por triggers PL/pgSQL com auditoria automática
+            Acompanhamento e controle de status dos atendimentos
           </p>
         </div>
 
@@ -289,7 +289,7 @@ export const PedidosPage: React.FC = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por cliente, ID, técnico..."
+              placeholder="Buscar por cliente, número, técnico..."
               className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200/80 rounded-2xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-primary-500 shadow-2xs transition-all"
             />
             {search && (
@@ -560,7 +560,7 @@ export const PedidosPage: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleOpenHistory(pedido)}
-                                  title="Histórico de Auditoria"
+                                  title="Histórico de Alterações"
                                   className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                                 >
                                   <History className="w-3.5 h-3.5" />
@@ -720,7 +720,7 @@ export const PedidosPage: React.FC = () => {
                       </div>
 
                       <div>
-                        <span className="text-slate-400 block text-[11px] font-semibold">Valor Total (Banco)</span>
+                        <span className="text-slate-400 block text-[11px] font-semibold">Valor Total</span>
                         <span className="font-extrabold text-base text-slate-900">
                           {formatCurrency(pedido.valor_total)}
                         </span>
@@ -933,7 +933,7 @@ export const PedidosPage: React.FC = () => {
                     disabled={savingSchedule}
                     className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs cursor-pointer disabled:opacity-50"
                   >
-                    {savingSchedule ? 'Gravando no banco...' : 'Confirmar Agendamento'}
+                    {savingSchedule ? 'Salvando agendamento...' : 'Confirmar Agendamento'}
                   </button>
                 </div>
               </form>
@@ -950,7 +950,7 @@ export const PedidosPage: React.FC = () => {
               <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                   <History className="w-4 h-4 text-blue-600" />
-                  Auditoria de Status ({formatOrderCode(historyOrder)})
+                  Histórico do Pedido ({formatOrderCode(historyOrder)})
                 </h3>
                 <button
                   onClick={() => setHistoryOrder(null)}
@@ -962,10 +962,10 @@ export const PedidosPage: React.FC = () => {
 
               <div className="p-6 max-h-[400px] overflow-y-auto">
                 {loadingHistory ? (
-                  <div className="py-8 text-center text-xs text-slate-400">Carregando auditoria...</div>
+                  <div className="py-8 text-center text-xs text-slate-400">Carregando histórico...</div>
                 ) : historyLogs.length === 0 ? (
                   <div className="py-8 text-center text-xs text-slate-400">
-                    Nenhum registro de auditoria.
+                    Nenhum registro de alteração.
                   </div>
                 ) : (
                   <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">

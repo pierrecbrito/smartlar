@@ -78,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({
           type="button"
           onClick={onOpenConfig}
           className="w-10 h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition-colors relative cursor-pointer"
-          title="Configurações do Banco"
+          title="Configurações"
         >
           <Settings className="w-4 h-4 text-slate-500" />
           <span
