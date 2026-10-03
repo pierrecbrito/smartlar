@@ -6,7 +6,6 @@ import {
   EyeOff,
   ShieldCheck,
   AlertCircle,
-  Sparkles,
   ArrowRight,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -23,13 +22,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { showToast } = useToast();
-
-  const handleQuickFill = () => {
-    setEmail('admin@smartlar.com.br');
-    setPassword('adminsmartlar2026');
-    setError('');
-    showToast('info', 'Credenciais preenchidas', 'Clique em Entrar no Sistema.');
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,21 +165,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               </button>
             </div>
           </form>
-
-          {/* Quick Demo Credentials Pill */}
-          <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
-            <span className="text-[11px] text-slate-400 font-medium">
-              Acesso Rápido:
-            </span>
-            <button
-              type="button"
-              onClick={handleQuickFill}
-              className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Preencher credenciais do Admin</span>
-            </button>
-          </div>
         </div>
       </div>
 
