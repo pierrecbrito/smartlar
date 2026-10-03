@@ -1,11 +1,12 @@
 # 📋 Especificação do Projeto SmartLar
 
-Este diretório contém a especificação técnica e funcional completa do sistema **SmartLar**.
+Este diretório contém a especificação técnica, os modelos de dados, os scripts SQL e as documentações de arquitetura do sistema **SmartLar**.
 
 ---
 
 ## 🗂️ Estrutura da Especificação (`.spec/`)
 
+### Documentos Normativos
 1. [**01_visao_geral.md**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/01_visao_geral.md)
    - Propósito do sistema, objetivos de negócio, personas e stack tecnológica.
 2. [**02_regras_negocio.md**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/02_regras_negocio.md)
@@ -20,3 +21,18 @@ Este diretório contém a especificação técnica e funcional completa do siste
    - Políticas de Row Level Security (RLS), trilha de auditoria e proteção de dados.
 7. [**07_casos_de_teste.md**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/07_casos_de_teste.md)
    - Matriz de testes de conformidade, validação canônica de valores e casos de erro.
+
+---
+
+### 🗄️ Banco de Dados & Scripts SQL (`.spec/database/`)
+- [**01_schema.sql**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/database/01_schema.sql) — DDL de tabelas, triggers, views e RPC `criar_pedido`.
+- [**02_seed.sql**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/database/02_seed.sql) — Carga inicial com cenários realistas de teste.
+- [**03_rls.sql**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/database/03_rls.sql) — Políticas de Row Level Security por perfil.
+
+---
+
+### 📄 Documentos de Governança & Histórico (`.spec/docs/`)
+- [**DECISIONS.md**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/docs/DECISIONS.md) — Racional técnico e justificativa de arquitetura para a entrevista.
+- [**IA-LOG.md**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/docs/IA-LOG.md) — Relatório de transparência do uso de Inteligência Artificial.
+- [**PLANO_PROJETO.md**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/docs/PLANO_PROJETO.md) — Planejamento estratégico, checklist de riscos e cronograma.
+- [**teste-pratico-dev-nocode-junior.pdf**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/docs/teste-pratico-dev-nocode-junior.pdf) — Documento de especificação original.

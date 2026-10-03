@@ -64,22 +64,22 @@ Desenvolvido para o teste técnico da **IAplicada** (Junior No-Code Dev), com fo
 
 ```
 smartlar/
-├── .spec/                # Especificação funcional e técnica completa
+├── .spec/                # Especificação funcional, técnica, SQL e governança
 │   ├── 01_visao_geral.md
 │   ├── 02_regras_negocio.md
 │   ├── 03_modelo_dados.md
 │   ├── 04_requisitos_funcionais.md
 │   ├── 05_design_system_ux.md
 │   ├── 06_seguranca_auditoria.md
-│   └── 07_casos_de_teste.md
-├── database/             # Scripts SQL e migrações do banco
-│   ├── 01_schema.sql     # Definição de tabelas, enums, triggers, views e RPC
-│   ├── 02_seed.sql       # Carga inicial com cenários de teste realistas
-│   └── 03_rls.sql        # Políticas de Row Level Security (ativar após login)
-├── docs/                 # Documentos de apoio, decisões e histórico
-│   ├── DECISIONS.md      # Registro detalhado das decisões arquiteturais
-│   ├── IA-LOG.md         # Registro de transparência do uso de IA
-│   └── PLANO_PROJETO.md  # Cronograma tático e matriz de avaliação
+│   ├── 07_casos_de_teste.md
+│   ├── database/         # Scripts SQL e migrações do banco
+│   │   ├── 01_schema.sql # DDL de tabelas, enums, triggers, views e RPC
+│   │   ├── 02_seed.sql   # Carga inicial com cenários de teste realistas
+│   │   └── 03_rls.sql    # Políticas de Row Level Security
+│   └── docs/             # Documentos de apoio, decisões e histórico
+│       ├── DECISIONS.md  # Registro detalhado das decisões arquiteturais
+│       ├── IA-LOG.md     # Registro de transparência do uso de IA
+│       └── PLANO_PROJETO.md # Cronograma tático e matriz de avaliação
 └── src/                  # Aplicação Frontend (React + Vite + TypeScript)
     ├── components/       # Componentes de UI modulares (Sidebar rail, Header, Toasts, Modais)
     ├── pages/            # 6 Telas: Dashboard, Produtos, Clientes, Novo Pedido, Pedidos, Agenda
@@ -158,10 +158,10 @@ A especificação completa do sistema encontra-se catalogada na pasta [`.spec/`]
 
 ---
 
-## 📄 Histórico de Governança & Decisões (`docs/`)
+## 📄 Histórico de Governança & Decisões (`.spec/docs/`)
 
-- [DECISIONS.md](docs/DECISIONS.md) — Racional técnico e justificativa de arquitetura.
-- [IA-LOG.md](docs/IA-LOG.md) — Relatório de transparência do uso de Inteligência Artificial.
-- [PLANO_PROJETO.md](docs/PLANO_PROJETO.md) — Planejamento estratégico e matriz de avaliação.
-- [teste-pratico-dev-nocode-junior.pdf](docs/teste-pratico-dev-nocode-junior.pdf) — Documento de especificação original.
+- [DECISIONS.md](.spec/docs/DECISIONS.md) — Racional técnico e justificativa de arquitetura.
+- [IA-LOG.md](.spec/docs/IA-LOG.md) — Relatório de transparência do uso de Inteligência Artificial.
+- [PLANO_PROJETO.md](.spec/docs/PLANO_PROJETO.md) — Planejamento estratégico e matriz de avaliação.
+- [teste-pratico-dev-nocode-junior.pdf](.spec/docs/teste-pratico-dev-nocode-junior.pdf) — Documento de especificação original.
 
