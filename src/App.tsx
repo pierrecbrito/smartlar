@@ -62,7 +62,7 @@ export const AppContent: React.FC = () => {
         )}
 
         {/* Main View Container */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-8 max-w-[1600px] w-full mx-auto">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-10 max-w-[1600px] w-full mx-auto">
           {currentTab === 'dashboard' && <DashboardPage onNavigate={setCurrentTab} />}
           {currentTab === 'novo-pedido' && <NovoPedidoPage onNavigate={setCurrentTab} />}
           {currentTab === 'pedidos' && <PedidosPage />}
