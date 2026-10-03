@@ -108,8 +108,21 @@ export function generateOrcamentoPdf({
 
   // Card do Orçamento (Direita) - Usando azul oficial #f0f4fa e borda #c0d4ed
   const cardWidth = 72;
-  const cardHeight = 24;
   const cardX = pageWidth - margin - cardWidth;
+  const clientCardWidth = cardX - margin - 4;
+  const maxEnderecoWidth = clientCardWidth - 8;
+
+  // Quebra e cálculo de linhas para o endereço completo do cliente
+  const enderecoTexto = cliente.endereco ? cliente.endereco : 'Endereço não informado';
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  const enderecoLinhas: string[] = doc.splitTextToSize(`Local de Instalação: ${enderecoTexto}`, maxEnderecoWidth);
+  const enderecoLineHeight = 3.6;
+
+  // Altura dinâmica de ambos os cards para que o endereço nunca seja cortado
+  const clientNeededHeight = 17 + (enderecoLinhas.length * enderecoLineHeight) + 3.5;
+  const cardHeight = Math.max(26, clientNeededHeight);
+
   doc.setFillColor(...SYSTEM_COLORS.blue50);
   doc.setDrawColor(...SYSTEM_COLORS.blue200);
   doc.roundedRect(cardX, currentY, cardWidth, cardHeight, 3, 3, 'FD');
@@ -132,13 +145,12 @@ export function generateOrcamentoPdf({
   doc.text(`${dataValidade} (15 dias)`, cardX + cardWidth - 4, currentY + 17, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
-  doc.text(`Status do Pedido:`, cardX + 4, currentY + 21.5);
+  doc.text(`Status do Pedido:`, cardX + 4, currentY + 22);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...SYSTEM_COLORS.blue600);
-  doc.text((pedido.status || 'orcamento').toUpperCase(), cardX + cardWidth - 4, currentY + 21.5, { align: 'right' });
+  doc.text((pedido.status || 'orcamento').toUpperCase(), cardX + cardWidth - 4, currentY + 22, { align: 'right' });
 
   // 3. Dados do Cliente (Esquerda)
-  const clientCardWidth = cardX - margin - 4;
   doc.setFillColor(248, 250, 252); // Slate 50
   doc.setDrawColor(226, 232, 240); // Slate 200
   doc.roundedRect(margin, currentY, clientCardWidth, cardHeight, 3, 3, 'FD');
@@ -160,10 +172,11 @@ export function generateOrcamentoPdf({
   const emailFormatado = cliente.email ? ` • ${cliente.email}` : '';
   doc.text(`Tel: ${telFormatado}${emailFormatado}`, margin + 4, currentY + 16);
 
-  const enderecoTruncado = cliente.endereco
-    ? (cliente.endereco.length > 55 ? `${cliente.endereco.slice(0, 52)}...` : cliente.endereco)
-    : 'Endereço não informado';
-  doc.text(`Local de Instalação: ${enderecoTruncado}`, margin + 4, currentY + 21);
+  let currentEndLineY = currentY + 20.5;
+  enderecoLinhas.forEach((linha) => {
+    doc.text(linha, margin + 4, currentEndLineY);
+    currentEndLineY += enderecoLineHeight;
+  });
 
   currentY += cardHeight + 8;
 

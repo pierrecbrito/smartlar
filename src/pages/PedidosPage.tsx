@@ -538,7 +538,7 @@ export const PedidosPage: React.FC = () => {
                               setDragOverColumn(null);
                             }}
                             style={{ borderBottom: '2px solid rgb(42 108 184 / 0.35)' }}
-                            className={`bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs hover:shadow-md transition-all group space-y-2.5 ${
+                            className={`bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs hover:shadow-md transition-all group space-y-2.5 overflow-hidden ${
                               isThisDragged
                                 ? 'opacity-30 border-dashed border-blue-400 scale-[0.98]'
                                 : canDrag
@@ -546,17 +546,34 @@ export const PedidosPage: React.FC = () => {
                                 : 'cursor-default hover:border-slate-200'
                             }`}
                           >
-                            {/* Card Top: ID + Data */}
+                            {/* Card Top: ID + Data + Cancelar (se permitido) */}
                             <div className="flex items-center justify-between text-[11px]">
-                              <div className="flex items-center gap-1.5">
-                                <span className={`w-2 h-2 rounded-full ${colConfig.dot}`} />
-                                <span className="font-mono font-bold text-slate-800">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${colConfig.dot}`} />
+                                <span className="font-mono font-bold text-slate-800 truncate">
                                   {formatOrderCode(pedido)}
                                 </span>
                               </div>
-                              <span className="text-slate-400 font-medium text-[10px]">
-                                {formatDate(pedido.created_at)}
-                              </span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="text-slate-400 font-medium text-[10px]">
+                                  {formatDate(pedido.created_at)}
+                                </span>
+                                {allowedTransitions.includes('cancelado') && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (confirm('Deseja realmente cancelar este pedido?')) {
+                                        handleTransitionStatus(pedido, 'cancelado');
+                                      }
+                                    }}
+                                    className="p-1 -mr-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                    title="Cancelar Pedido"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
                             </div>
 
                             {/* Cliente */}
@@ -592,16 +609,16 @@ export const PedidosPage: React.FC = () => {
                               </div>
                             )}
 
-                            {/* Rodapé do Card: Total e Ações em Linha Única */}
-                            <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-1">
-                              <div>
-                                <span className="text-[10px] text-slate-400 font-semibold block uppercase">Total</span>
-                                <span className="text-xs font-extrabold text-slate-900">
+                            {/* Rodapé do Card: Total e Ações */}
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1 flex-nowrap">
+                              <div className="shrink-0">
+                                <span className="text-[10px] text-slate-400 font-semibold block uppercase leading-none mb-0.5">Total</span>
+                                <span className="text-xs font-extrabold text-slate-900 leading-none">
                                   {formatCurrency(pedido.valor_total)}
                                 </span>
                               </div>
 
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1 shrink-0">
                                 <button
                                   type="button"
                                   onClick={() => setViewingOrder(pedido)}
@@ -627,7 +644,7 @@ export const PedidosPage: React.FC = () => {
                                   <FileText className="w-3.5 h-3.5" />
                                 </button>
 
-                                {allowedTransitions.map((nextStatus) => {
+                                {allowedTransitions.filter((s) => s !== 'cancelado').map((nextStatus) => {
                                   if (nextStatus === 'aprovado') {
                                     return (
                                       <button
@@ -681,23 +698,6 @@ export const PedidosPage: React.FC = () => {
                                       >
                                         <CheckCircle2 className="w-3 h-3" />
                                         Concluir
-                                      </button>
-                                    );
-                                  }
-                                  if (nextStatus === 'cancelado') {
-                                    return (
-                                      <button
-                                        key={nextStatus}
-                                        type="button"
-                                        onClick={() => {
-                                          if (confirm('Deseja realmente cancelar este pedido?')) {
-                                            handleTransitionStatus(pedido, 'cancelado');
-                                          }
-                                        }}
-                                        className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                                        title="Cancelar Pedido"
-                                      >
-                                        <X className="w-3.5 h-3.5" />
                                       </button>
                                     );
                                   }
