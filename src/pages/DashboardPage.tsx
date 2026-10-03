@@ -20,8 +20,6 @@ import {
   CheckCircle2,
   ChevronRight,
   ExternalLink,
-  RefreshCw,
-  Sparkles,
   Shield,
   Send,
   Sliders,
@@ -247,43 +245,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="space-y-6 animate-fade-in text-slate-800 pb-16">
-      {/* ========================================================================= */}
-      {/* CABEÇALHO DO DASHBOARD                                                    */}
-      {/* ========================================================================= */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Painel de Gestão & Operações
-            </h1>
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full border border-slate-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-              Tempo Real
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Visão consolidada para o Rafael: faturamento mensal, instalações da semana e acompanhamento de propostas.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={loadData}
-            disabled={loading}
-            className="px-3.5 py-2 rounded-2xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
-            <span>Atualizar</span>
-          </button>
-          <button
-            onClick={() => onNavigate('novo-pedido')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Novo Orçamento</span>
-          </button>
-        </div>
-      </div>
 
 
 
