@@ -197,16 +197,24 @@ returns uuid
 language plpgsql as $$
 declare
   v_id uuid;
+  v_total numeric(10,2) := 0;
 begin
   if p_itens is null or jsonb_typeof(p_itens) <> 'array' or jsonb_array_length(p_itens) = 0 then
     raise exception 'O pedido precisa ter ao menos um item';
   end if;
 
-  insert into pedidos (cliente_id, observacoes)
-  values (p_cliente_id, nullif(trim(p_observacoes), ''))
+  -- 1. Pré-calcula o valor_total para que o webhook no INSERT já receba o valor real
+  select coalesce(sum((i->>'quantidade')::int * pr.preco), 0)
+    into v_total
+    from jsonb_array_elements(p_itens) as i
+    join produtos pr on pr.id = (i->>'produto_id')::uuid;
+
+  -- 2. Insere o pedido já com o valor_total preenchido
+  insert into pedidos (cliente_id, observacoes, valor_total)
+  values (p_cliente_id, nullif(trim(p_observacoes), ''), v_total)
   returning id into v_id;
 
-  -- agrupa produto repetido somando as quantidades
+  -- 3. Insere os itens_pedido (agrupando produtos repetidos se houver)
   insert into itens_pedido (pedido_id, produto_id, quantidade)
   select v_id, (i->>'produto_id')::uuid, sum((i->>'quantidade')::int)
     from jsonb_array_elements(p_itens) as i
