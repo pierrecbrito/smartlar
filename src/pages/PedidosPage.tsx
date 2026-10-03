@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   ClipboardList,
   Calendar,
@@ -15,11 +15,12 @@ import {
   List,
   Search,
   AlertCircle,
+  AlertTriangle,
   Lock,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Pedido, Tecnico, StatusPedido, HistoricoStatus } from '../types/database';
-import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, STATUS_CONFIG, PROXIMOS_STATUS } from '../lib/utils';
+import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, getCurrentDateTimeLocal, STATUS_CONFIG, PROXIMOS_STATUS } from '../lib/utils';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -104,6 +105,23 @@ export const PedidosPage: React.FC = () => {
       p.observacoes?.toLowerCase().includes(search.toLowerCase());
     return matchStatus && matchSearch;
   });
+
+  const schedulingConflict = useMemo(() => {
+    if (!schedulingOrder || !scheduleTecnicoId || !scheduleData) return null;
+    const targetTime = new Date(scheduleData).getTime();
+    if (isNaN(targetTime)) return null;
+
+    return pedidos.find((p) => {
+      if (p.id === schedulingOrder.id) return false;
+      if (p.tecnico_id !== scheduleTecnicoId) return false;
+      if (p.status !== 'agendado' && p.status !== 'em_andamento') return false;
+      if (!p.data_instalacao) return false;
+
+      const orderTime = new Date(p.data_instalacao).getTime();
+      const diffHours = Math.abs(orderTime - targetTime) / (1000 * 60 * 60);
+      return diffHours < 2;
+    });
+  }, [schedulingOrder, scheduleTecnicoId, scheduleData, pedidos]);
 
   const draggedOrder = draggedOrderId ? pedidos.find((p) => p.id === draggedOrderId) || null : null;
   const allowedNextStatuses = draggedOrder ? (PROXIMOS_STATUS[draggedOrder.status] || []) : [];
@@ -198,6 +216,12 @@ export const PedidosPage: React.FC = () => {
 
     if (!scheduleTecnicoId || !scheduleData) {
       showToast('error', 'Campos obrigatórios', 'Técnico e Data/Horário são obrigatórios para agendar.');
+      return;
+    }
+
+    const selectedTime = new Date(scheduleData).getTime();
+    if (isNaN(selectedTime) || selectedTime < Date.now() - 60000) {
+      showToast('error', 'Data retroativa', 'A data e horário de instalação não podem ser no passado.');
       return;
     }
 
@@ -894,11 +918,24 @@ export const PedidosPage: React.FC = () => {
                   <input
                     type="datetime-local"
                     required
+                    min={getCurrentDateTimeLocal()}
                     value={scheduleData}
                     onChange={(e) => setScheduleData(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
                   />
                 </div>
+
+                {schedulingConflict && (
+                  <div className="p-3 bg-amber-50 border border-amber-200/90 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900 animate-fade-in">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold">Aviso de Proximidade de Horário</p>
+                      <p className="text-[11px] text-amber-800 mt-0.5">
+                        O técnico selecionado já possui o pedido <b>{formatOrderCode(schedulingConflict)}</b> agendado próximo a esse horário ({formatDateTime(schedulingConflict.data_instalacao)}). Verifique a viabilidade de deslocamento.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
 
 

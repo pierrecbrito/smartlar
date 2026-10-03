@@ -26,11 +26,12 @@ import {
   Check,
   CreditCard,
   ClipboardCheck,
-  Tag
+  Tag,
+  AlertTriangle,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Cliente, Produto, TipoPagamento } from '../types/database';
-import { formatCurrency, formatPhone, formatOrderCode } from '../lib/utils';
+import { formatCurrency, formatPhone, formatOrderCode, maskPhone } from '../lib/utils';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -208,6 +209,10 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
       const cleanPhone = newClientTelefone.replace(/\D/g, '');
       if (cleanPhone.length < 10 || cleanPhone.length > 13) {
         throw new Error('O telefone deve ter entre 10 e 13 dígitos numéricos.');
+      }
+
+      if (newClientEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newClientEmail.trim())) {
+        throw new Error('Por favor, informe um endereço de e-mail válido.');
       }
 
       const { data, error } = await supabase
@@ -747,10 +752,10 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                         <input
                           type="number"
                           min={0}
-                          max={100}
+                          max={50}
                           value={descontoPercentual === 0 ? '' : descontoPercentual}
                           onChange={(e) => {
-                            const val = e.target.value === '' ? 0 : Math.min(100, Math.max(0, Number(e.target.value)));
+                            const val = e.target.value === '' ? 0 : Math.min(50, Math.max(0, Number(e.target.value)));
                             setDescontoPercentual(val);
                           }}
                           placeholder="0"
@@ -777,6 +782,13 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                         ))}
                       </div>
                     </div>
+
+                    {descontoPercentual > 20 && (
+                      <div className="p-2.5 bg-amber-50 border border-amber-200/90 rounded-xl text-[11px] text-amber-900 flex items-start gap-1.5 animate-fade-in">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                        <span>Desconto de <b>{descontoPercentual}%</b>: Concessões acima de 20% exigem alinhamento e autorização gerencial.</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Linhas de Valores (Subtotal, Desconto, Instalação, Total) */}
@@ -1086,11 +1098,11 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                     Telefone (WhatsApp) *
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     required
-                    placeholder="Ex: 81999998888"
+                    placeholder="(81) 99999-8888"
                     value={newClientTelefone}
-                    onChange={(e) => setNewClientTelefone(e.target.value)}
+                    onChange={(e) => setNewClientTelefone(maskPhone(e.target.value))}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
                   />
                 </div>

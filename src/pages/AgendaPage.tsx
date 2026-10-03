@@ -334,6 +334,12 @@ export const AgendaPage: React.FC = () => {
       return;
     }
 
+    const targetDate = new Date(`${rescheduleDate}T${rescheduleTime}:00`);
+    if (isNaN(targetDate.getTime()) || targetDate.getTime() < Date.now() - 60000) {
+      showToast('error', 'Data retroativa', 'A data e horário de instalação não podem ser no passado.');
+      return;
+    }
+
     setSavingReschedule(true);
     try {
       const combinedDateTime = new Date(`${rescheduleDate}T${rescheduleTime}:00`).toISOString();
@@ -370,6 +376,23 @@ export const AgendaPage: React.FC = () => {
       setSavingReschedule(false);
     }
   };
+
+  const rescheduleConflict = useMemo(() => {
+    if (!reschedulingOrder || !rescheduleTecnicoId || !rescheduleDate || !rescheduleTime) return null;
+    const targetTime = new Date(`${rescheduleDate}T${rescheduleTime}:00`).getTime();
+    if (isNaN(targetTime)) return null;
+
+    return pedidos.find((p) => {
+      if (p.id === reschedulingOrder.id) return false;
+      if (p.tecnico_id !== rescheduleTecnicoId) return false;
+      if (p.status !== 'agendado' && p.status !== 'em_andamento') return false;
+      if (!p.data_instalacao) return false;
+
+      const orderTime = new Date(p.data_instalacao).getTime();
+      const diffHours = Math.abs(orderTime - targetTime) / (1000 * 60 * 60);
+      return diffHours < 2;
+    });
+  }, [reschedulingOrder, rescheduleTecnicoId, rescheduleDate, rescheduleTime, pedidos]);
 
   // Atualização rápida de status (Iniciar / Concluir)
   const handleUpdateStatus = async (pedidoId: string, novoStatus: StatusPedido, e?: React.MouseEvent) => {
@@ -1238,6 +1261,7 @@ export const AgendaPage: React.FC = () => {
                 </label>
                 <input
                   type="date"
+                  min={new Date().toISOString().slice(0, 10)}
                   value={rescheduleDate}
                   onChange={(e) => setRescheduleDate(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
@@ -1343,6 +1367,18 @@ export const AgendaPage: React.FC = () => {
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 resize-none"
                 />
               </div>
+
+              {rescheduleConflict && (
+                <div className="p-3 bg-amber-50 border border-amber-200/90 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900 animate-fade-in">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Aviso de Proximidade de Horário</p>
+                    <p className="text-[11px] text-amber-800 mt-0.5">
+                      O técnico selecionado já possui o pedido <b>{formatOrderCode(rescheduleConflict)}</b> ({rescheduleConflict.cliente?.nome || 'Cliente'}) agendado para às {formatDateTime(rescheduleConflict.data_instalacao)}. Verifique a rota e deslocamento.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Rodapé de Ações */}

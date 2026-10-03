@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Cliente, Pedido } from '../types/database';
-import { formatPhone, formatDateTime, formatCurrency, formatOrderCode, STATUS_CONFIG } from '../lib/utils';
+import { formatPhone, formatDateTime, formatCurrency, formatOrderCode, maskPhone, STATUS_CONFIG } from '../lib/utils';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -107,6 +107,10 @@ export const ClientesPage: React.FC = () => {
       const cleanPhone = telefone.replace(/\D/g, '');
       if (cleanPhone.length < 10 || cleanPhone.length > 13) {
         throw new Error('O telefone deve ter entre 10 e 13 dígitos numéricos.');
+      }
+
+      if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        throw new Error('Por favor, informe um endereço de e-mail válido.');
       }
 
       const { data, error } = await supabase
@@ -503,11 +507,11 @@ export const ClientesPage: React.FC = () => {
                     Telefone (WhatsApp) *
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     required
-                    placeholder="Ex: 81999998888 (com DDD)"
+                    placeholder="(81) 99999-8888"
                     value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
+                    onChange={(e) => setTelefone(maskPhone(e.target.value))}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
                   />
                 </div>
