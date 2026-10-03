@@ -59,8 +59,8 @@ export const PedidosPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const [pedidosRes, tecnicosRes] = await Promise.all([
         supabase
@@ -84,7 +84,7 @@ export const PedidosPage: React.FC = () => {
       console.error('Erro ao listar pedidos:', err);
       showToast('error', 'Falha ao carregar pedidos', err.message);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -185,6 +185,12 @@ export const PedidosPage: React.FC = () => {
       return;
     }
 
+    // Atualização otimista imediata para transição instantânea e fluida
+    const previousPedidos = [...pedidos];
+    setPedidos((prev) =>
+      prev.map((p) => (p.id === pedido.id ? { ...p, status: novoStatus } : p))
+    );
+
     try {
       const { error } = await supabase
         .from('pedidos')
@@ -199,8 +205,11 @@ export const PedidosPage: React.FC = () => {
         `Pedido ${formatOrderCode(pedido)} avançou no fluxo.`
       );
 
-      loadData();
+      // Sincroniza em background sem recriar o esqueleto do Kanban
+      loadData(true);
     } catch (err: any) {
+      // Reverte a alteração otimista caso o banco rejeite
+      setPedidos(previousPedidos);
       console.error('Erro na transição:', err);
       showToast(
         'error',
@@ -228,6 +237,22 @@ export const PedidosPage: React.FC = () => {
     setSavingSchedule(true);
     try {
       const isoDate = new Date(scheduleData).toISOString();
+      const tecnicoObj = tecnicos.find((t) => t.id === scheduleTecnicoId);
+
+      // Atualização otimista no estado local
+      setPedidos((prev) =>
+        prev.map((p) =>
+          p.id === schedulingOrder.id
+            ? {
+                ...p,
+                status: 'agendado',
+                tecnico_id: scheduleTecnicoId,
+                tecnico: tecnicoObj || p.tecnico,
+                data_instalacao: isoDate,
+              }
+            : p
+        )
+      );
 
       const { error } = await supabase
         .from('pedidos')
@@ -247,8 +272,9 @@ export const PedidosPage: React.FC = () => {
       );
 
       setSchedulingOrder(null);
-      loadData();
+      loadData(true);
     } catch (err: any) {
+      loadData(true);
       console.error('Erro ao agendar:', err);
       showToast('error', 'Falha ao gravar agendamento', err.message);
     } finally {
