@@ -578,62 +578,60 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   return (
                     <div
                       key={p.id}
-                      className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/70 hover:border-slate-300 hover:bg-slate-50 transition-all space-y-2.5"
+                      className="group flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-slate-50/70 border border-slate-200/70 hover:bg-white hover:border-slate-300 hover:shadow-xs transition-all"
                     >
-                      <div className="flex items-center justify-between gap-2">
+                      {/* Lado Esquerdo: Nome + Código + Tempo sem resposta */}
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-xs text-slate-900">
+                          <span className="font-extrabold text-xs sm:text-sm text-slate-900 truncate">
                             {p.cliente?.nome || 'Cliente'}
                           </span>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="font-mono text-[10px] font-bold text-slate-400">
+                            {formatOrderCode(p)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500">
+                          <span className="text-slate-600 font-medium">
                             {p.diasSemResposta === 0
                               ? 'Enviado hoje'
                               : p.diasSemResposta === 1
                               ? 'Enviado ontem'
-                              : `Há ${p.diasSemResposta} dias sem resposta`}
+                              : `${p.diasSemResposta} dias atrás`}
                           </span>
-                        </div>
-
-                        <span className="text-xs font-extrabold text-slate-900">
-                          {formatCurrency(p.valor_total)}
-                        </span>
-                      </div>
-
-                      {/* Detalhes de contato e data */}
-                      <div className="flex items-center justify-between text-[11px] text-slate-500">
-                        <span>Tel: {formatPhone(p.cliente?.telefone)}</span>
-                        <span>Enviado em: {formatDate(p.created_at)}</span>
-                      </div>
-
-                      {/* Itens do orçamento */}
-                      {p.itens && p.itens.length > 0 && (
-                        <div className="text-[11px] text-slate-600 bg-white p-2 rounded-xl border border-slate-200/60 truncate">
-                          📦 {p.itens.map((i) => `${i.quantidade}x ${i.produto?.nome}`).join(', ')}
-                        </div>
-                      )}
-
-                      {/* Botões de Ação */}
-                      <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
-                        <button
-                          onClick={() => onNavigate('pedidos')}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-bold hover:underline"
-                        >
-                          Ver no Kanban ➔
-                        </button>
-
-                        <div className="flex items-center gap-2">
                           {p.cliente?.telefone && (
-                            <a
-                              href={linkWhatsapp}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-                            >
-                              <Send className="w-3.5 h-3.5" />
-                              <span>Cobrar no WhatsApp</span>
-                            </a>
+                            <>
+                              <span className="text-slate-300">•</span>
+                              <span className="truncate">{formatPhone(p.cliente.telefone)}</span>
+                            </>
                           )}
                         </div>
+                      </div>
+
+                      {/* Lado Direito: Valor + Ação WhatsApp minimalista + Acesso */}
+                      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                        <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+                          {formatCurrency(p.valor_total)}
+                        </span>
+
+                        {p.cliente?.telefone && (
+                          <a
+                            href={linkWhatsapp}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Cobrar via WhatsApp"
+                            className="p-2 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200/80 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+
+                        <button
+                          onClick={() => onNavigate('pedidos')}
+                          title="Ver no Kanban"
+                          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                        >
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   );
