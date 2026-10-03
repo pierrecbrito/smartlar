@@ -26,15 +26,16 @@ O SmartLar foi desenhado para simular a ergonomia de um **terminal de ponto de v
 
 ## 3. Padrões de Componentes
 
-### 3.1 Sidebar Rail Slim
-- Barra lateral vertical fixa de 80px (`w-20`).
-- Ícones centralizados com tooltip no hover.
-- Botão inferior de status de conexão com o Supabase e atalho para configurações.
+### 3.1 Sidebar Rail (Desktop)
+- Barra lateral vertical fixa de 64px (`lg:w-64`).
+- Ícones e rótulos tipográficos com destaque visual para a aba ativa.
+- Experiência limpa e profissional para operadores de escritório e despachantes, sem exposição de configurações técnicas de infraestrutura.
 
 ### 3.2 Drawer de Pedido Fixo (Order Details Drawer)
 - Posicionado à direita na tela de **Novo Pedido**.
 - Permite que o operador navegue pelo catálogo sem perder a visão do carrinho atual.
 - Steppers azuis responsivos `[- qtd +]` e totalizadores calculados em tempo real.
+- Combobox com pesquisa em tempo real para seleção rápida de produtos sem necessidade de tabelas poluídas.
 
 ### 3.3 Filtros em Pílulas (Pill Chips)
 - Filtros horizontais com cantos totalmente arredondados (`rounded-full`).
@@ -44,8 +45,21 @@ O SmartLar foi desenhado para simular a ergonomia de um **terminal de ponto de v
 - Modais renderizados via `ModalPortal` no root do DOM para evitar problemas de stacking context (`z-index`).
 - Fundo translúcido com `backdrop-blur-sm` e animação suave de fade-in.
 
-### 3.5 Sistema de Toasts Notificadores
-- Central de notificações flutuantes no canto inferior direito.
-- Tipos: `success`, `error`, `warning`, `info`.
-- Descarte automático após 5 segundos ou via botão de fechar.
-- Mensagens de erro do PostgreSQL são interceptadas e apresentadas com títulos claros.
+### 3.5 Sistema de Toasts Notificadores (Mobile & Desktop)
+- Notificações compactas em estilo card flutuante translúcido (`backdrop-blur-md bg-white/95`) com cantos arredondados (`rounded-2xl`) e sombra suave.
+- **Mobile First:** Centralizado horizontalmente no **topo da tela** (`top-3.5 left-0 right-0 items-center`), estilo notificação nativa (Dynamic Island / iOS), sem colidir com o menu inferior.
+- **Desktop:** Fixado discretamente no canto inferior direito.
+- Tipos: `success`, `error`, `warning`, `info` com micro-badges coloridos.
+- Descarte automático ou via botão sutil de fechamento.
+
+---
+
+## 4. Ergonomia e Otimizações Mobile (App-Like Experience)
+
+O SmartLar foi otimizado para operadores em campo com smartphones:
+1. **Navegação Inferior Flutuante (`BottomNav`):** Barra horizontal inferior com cantos arredondados (`rounded-2xl`), ícones centralizados e espaçamento das bordas, simulando a experiência fluida de um app nativo. O menu hambúrguer foi removido no mobile para economizar espaço de tela.
+2. **Agenda Técnica com Foco Diário:** No celular, a visualização padrão foca em **1 dia por vez** (com navegação ágil dia a dia), prevenindo que a grade semanal fique apertada ou ilegível.
+3. **Cards Verticais e Responsivos:** Em Clientes e Produtos, as informações são distribuídas verticalmente para nunca estourar a largura da tela do celular nem exigir rolagem horizontal indesejada.
+4. **Cards do Kanban com Ações Seguras:** O botão de cancelamento (`X`) fica posicionado no cabeçalho superior do card, ao lado da data, permitindo que a linha inferior (Total + Ver Itens + Histórico + PDF + Aprovar) caiba com folga sem empurrar botões para fora do card.
+5. **Proposta Comercial em PDF com Quebra de Linha:** O gerador de PDF calcula a largura útil e quebra endereços longos dinamicamente (`splitTextToSize`), expandindo harmonicamente a altura dos blocos para que nenhuma informação seja cortada.
+6. **Tela de Login Restrita:** Interface focada exclusivamente no acesso de usuários cadastrados (`admin@smartlar.com.br`), com cabeçalho centralizado e sem detalhes técnicos de banco de dados visíveis ao operador.

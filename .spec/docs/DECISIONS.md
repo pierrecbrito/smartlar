@@ -59,6 +59,19 @@ Este documento registra todas as decisões técnicas tomadas na concepção e im
 ### 2.4 Bloqueio Preventivo na UI + Toasts Informativos
 - **Decisão:** Na tela de Gestão de Pedidos, apenas os botões válidos para o próximo passo são renderizados. Ao clicar em "Agendar", abre-se um modal dedicado que obriga o preenchimento de técnico e data. Qualquer recusa do PostgreSQL é capturada pelo bloco `catch` e exibida no toast de erro.
 
+### 2.5 Ergonomia Mobile First & PWA-Like Experience
+- **Decisão:** O layout foi otimizado para celulares eliminando a necessidade de menu hambúrguer tradicional:
+  - **Barra de Navegação Inferior Flutuante (`BottomNav`):** Navegação horizontal centrada com ícones, bordas arredondadas e margens de respiro, imitando a pegada de um aplicativo móvel nativo.
+  - **Agenda Diária no Celular:** Ao invés da grade semanal completa (que fica truncada no smartphone), o mobile exibe o dia corrente com controles laterais para avançar/retroceder.
+  - **Combobox de Produtos no PDV:** No mobile, tabelas densas de catálogo foram substituídas por um seletor inteligente com busca, agilizando o fechamento de pedidos no balcão.
+  - **Cards Verticais sem Estouro:** Informações de clientes e produtos foram redistribuídas verticalmente, prevenindo rolagem horizontal indesejada.
+  - **Botão Cancelar (`X`) no Cabeçalho do Card:** Movido para o topo do card junto à data, evitando a sobrecarga do rodapé e prevenindo que botões de ação vazem para fora da moldura do card.
+  - **Quebra Dinâmica de Endereço no PDF:** O gerador de propostas comerciais (jsPDF) utiliza `splitTextToSize` com altura dinâmica nos cards, permitindo que endereços extensos quebrem em múltiplas linhas sem corte ou perda de legibilidade.
+
+### 2.6 Hardening do Front-end e Ocultação de Detalhes Técnicos
+- **Decisão:** Remoção de qualquer botão ou modal de "Configurar DB" da interface do usuário. As credenciais são gerenciadas exclusivamente pelo arquivo de ambiente e pela plataforma de hospedagem (Vercel).
+- **Tela de Login Restrita:** Acesso protegido por sessão Supabase Auth com login obrigatório para o usuário administrador (`admin@smartlar.com.br`) e sem opção pública de auto-cadastro.
+
 ---
 
 ## 3. Automações e Integrações (n8n)

@@ -45,6 +45,10 @@ Este documento cumpre o requisito de transparência do processo seletivo da IApl
 - **O que foi alterado/rejeitado manualmente:**
   - **Rejeição de Mock Data:** Qualquer sugestão inicial da IA de simular dados com arrays estáticos no frontend foi sumariamente rejeitada. Todas as listas, indicadores, buscas e formulários comunicam-se em tempo real com o PostgreSQL hospedado no Supabase.
   - **Cálculos de Totais:** O front foi instruído a nunca enviar `valor_total` para o banco. O cálculo exibido na tela é puramente reativo para prévia do operador; o valor gravado é sempre o computado pelo banco via RPC.
+  - **Redesenho Mobile First & PWA:** A proposta original de tabelas da IA quebrava a largura em telas de celular. Reescrevemos a navegação com bottom nav flutuante, foco diário na agenda, combobox com busca de produtos e eliminação de overflow horizontal.
+  - **Posicionamento de Ações no Card:** O botão de cancelamento foi movido da linha inferior para o topo do card para evitar que o "X" vazasse da moldura branca na visualização mobile.
+  - **Quebra Dinâmica de Endereço no PDF:** A IA gerou um corte arbitrário de 52 caracteres (`slice(0, 52)`). Refatoramos com `splitTextToSize` e altura dinâmica no jsPDF para garantir que endereços longos quebrem em múltiplas linhas e nunca fiquem truncados.
+  - **Correção de Views UNRESTRICTED:** Identificamos que a view `v_agenda_pedidos` gerada sem `security_invoker = true` bypassava o RLS no Supabase. Criamos a migração `07_fix_security_invoker_views.sql` para garantir conformidade de segurança.
 
 ---
 
