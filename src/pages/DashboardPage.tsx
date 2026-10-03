@@ -432,7 +432,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   <p className="text-[11px] text-slate-400 mt-0.5">Aprove orçamentos pendentes para agendar instalações.</p>
                 </div>
               ) : (
-                proximasInstalacoes7Dias.map((p) => {
+                proximasInstalacoes7Dias.slice(0, 5).map((p) => {
                   const msgWhatsappCliente = `Olá ${p.cliente?.nome}! Aqui é o Rafael da SmartLar. Confirmando nossa visita técnica para instalação agendada para ${p.data_instalacao ? formatDateTime(p.data_instalacao) : 'esta semana'} no endereço: ${p.cliente?.endereco || ''}. Técnico responsável: ${p.tecnico?.nome || 'Nossa equipe'}. Qualquer dúvida estamos à disposição!`;
                   const linkWhatsappCliente = `https://wa.me/55${(p.cliente?.telefone || '').replace(/\D/g, '')}?text=${encodeURIComponent(msgWhatsappCliente)}`;
 
@@ -571,7 +571,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   <p className="text-[11px] text-slate-400 mt-0.5">Todas as propostas foram aprovadas ou finalizadas.</p>
                 </div>
               ) : (
-                orcamentosAguardando.map((p) => {
+                orcamentosAguardando.slice(0, 5).map((p) => {
                   const msgWhatsapp = `Olá ${p.cliente?.nome}! Aqui é o Rafael da SmartLar Automação e Segurança. Gostaria de saber se você teve a oportunidade de ver a proposta que montamos (${formatOrderCode(p)}) no valor de ${formatCurrency(p.valor_total)}. Ficou alguma dúvida técnica ou sobre os equipamentos?`;
                   const linkWhatsapp = `https://wa.me/55${(p.cliente?.telefone || '').replace(/\D/g, '')}?text=${encodeURIComponent(msgWhatsapp)}`;
 
