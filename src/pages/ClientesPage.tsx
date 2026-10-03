@@ -20,7 +20,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { Cliente, Pedido } from '../types/database';
 import { formatPhone, formatDateTime, formatCurrency, formatOrderCode, maskPhone, STATUS_CONFIG } from '../lib/utils';
-import { maskCep, buscarCep, formatarEnderecoCompleto } from '../lib/cep';
+import { maskCep, buscarCep, formatarEnderecoCompleto, formatarEnderecoListagem } from '../lib/cep';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -297,7 +297,123 @@ export const ClientesPage: React.FC = () => {
           <p className="text-sm font-semibold text-slate-600">Nenhum cliente cadastrado com os critérios.</p>
         </div>
       ) : (
-        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
+        <>
+          {/* ============================================================== */}
+          {/* LISTAGEM MOBILE: CARDS VERTICAIS (100% LARGURA, SEM OVERFLOW) */}
+          {/* ============================================================== */}
+          <div className="md:hidden space-y-3">
+          {filteredClientes.map((cliente) => {
+            const cleanPhone = cliente.telefone.replace(/\D/g, '');
+            const pedidosCount = cliente.pedidos?.length || 0;
+            const activeOrdersCount = cliente.pedidos?.filter(
+              (p) => p.status === 'agendado' || p.status === 'em_andamento'
+            ).length || 0;
+
+            return (
+              <div
+                key={cliente.id}
+                className="bg-white rounded-3xl border border-slate-200/80 p-4 shadow-xs space-y-3"
+              >
+                {/* Cabeçalho do Cliente: Avatar + Nome + Badge Pedidos */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-100/80 text-blue-800 font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                      {cliente.nome.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        onClick={() => handleOpenClientOrders(cliente)}
+                        className="font-bold text-slate-900 text-sm hover:text-blue-600 transition-colors cursor-pointer truncate"
+                      >
+                        {cliente.nome}
+                      </p>
+                      {cliente.email ? (
+                        <p className="text-[11px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                          <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                          {cliente.email}
+                        </p>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 italic">Sem e-mail cadastrado</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Badge de Histórico de Pedidos */}
+                  <div className="shrink-0 text-right">
+                    {activeOrdersCount > 0 ? (
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                        {activeOrdersCount} ativo{activeOrdersCount > 1 ? 's' : ''}
+                      </span>
+                    ) : pedidosCount > 0 ? (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        {pedidosCount} pedido{pedidosCount > 1 ? 's' : ''}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                        0 pedidos
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Telefone e WhatsApp */}
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className="font-extrabold text-slate-800 text-xs font-mono">
+                    {formatPhone(cliente.telefone)}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => window.open(`https://wa.me/55${cleanPhone}`, '_blank')}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-[11px] border border-emerald-200 transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <MessageSquare className="w-3 h-3 text-emerald-600" />
+                    <span>WhatsApp</span>
+                  </button>
+                </div>
+
+                {/* Endereço de Instalação (Sem complemento nem referência) */}
+                <div className="p-2.5 bg-slate-50/70 border border-slate-200/80 rounded-2xl flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-1.5 min-w-0 flex-1">
+                    <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-slate-700 font-semibold leading-relaxed">
+                      {formatarEnderecoListagem(cliente)}
+                    </p>
+                  </div>
+                  {cliente.endereco && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        formatarEnderecoListagem(cliente)
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded-xl transition-colors shrink-0 border border-slate-200/60"
+                      title="Ver endereço no Google Maps"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+
+                {/* Ação: Ver Pedidos do Cliente */}
+                <button
+                  type="button"
+                  onClick={() => handleOpenClientOrders(cliente)}
+                  className="w-full py-2.5 bg-slate-50 hover:bg-blue-50 text-blue-700 hover:text-blue-800 font-bold rounded-2xl border border-slate-200 hover:border-blue-200 text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <ClipboardList className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Ver Pedidos & Histórico</span>
+                  <ArrowRight className="w-3 h-3 text-blue-400" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ============================================================== */}
+        {/* LISTAGEM DESKTOP: TABELA HORIZONTAL COMPLETA                   */}
+        {/* ============================================================== */}
+        <div className="hidden md:block rounded-3xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -382,18 +498,13 @@ export const ClientesPage: React.FC = () => {
                           <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                           <div className="min-w-0 flex-1">
                             <p className="text-xs text-slate-700 font-semibold leading-relaxed line-clamp-2">
-                              {cliente.endereco}
+                              {formatarEnderecoListagem(cliente)}
                             </p>
-                            {cliente.ponto_referencia && (
-                              <p className="text-[11px] text-blue-600/80 font-medium mt-0.5 truncate">
-                                💡 Ref: {cliente.ponto_referencia}
-                              </p>
-                            )}
                           </div>
                           {cliente.endereco && (
                             <a
                               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                cliente.endereco
+                                formatarEnderecoListagem(cliente)
                               )}`}
                               target="_blank"
                               rel="noreferrer"
@@ -460,6 +571,7 @@ export const ClientesPage: React.FC = () => {
             </span>
           </div>
         </div>
+      </>
       )}
 
       {/* Modal Ver Pedidos do Cliente */}

@@ -248,7 +248,82 @@ export const ProdutosPage: React.FC = () => {
           <p className="text-sm font-semibold text-slate-600">Nenhum equipamento cadastrado com os critérios.</p>
         </div>
       ) : (
-        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
+        <>
+          {/* ============================================================== */}
+          {/* LISTAGEM MOBILE: CARDS VERTICAIS (100% LARGURA, SEM OVERFLOW) */}
+          {/* ============================================================== */}
+          <div className="md:hidden space-y-3">
+          {filteredProdutos.map((p) => (
+            <div
+              key={p.id}
+              className={`bg-white rounded-3xl border border-slate-200/80 p-4 shadow-xs space-y-3 ${
+                !p.ativo ? 'opacity-75 bg-slate-50/40' : ''
+              }`}
+            >
+              {/* Top: Nome e Status */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-slate-900 text-sm leading-snug">
+                    {p.nome}
+                  </h4>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleAtivo(p)}
+                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
+                    p.ativo
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                      : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'
+                  }`}
+                  title={p.ativo ? 'Clique para desativar' : 'Clique para ativar'}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${p.ativo ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                  <span>{p.ativo ? 'Ativo' : 'Inativo'}</span>
+                </button>
+              </div>
+
+              {/* Descrição */}
+              {p.descricao && (
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {p.descricao}
+                </p>
+              )}
+
+              {/* Categoria e Preço */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                <span className="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200/80">
+                  {p.categoria}
+                </span>
+
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Preço Unitário</span>
+                  <span className="font-extrabold text-slate-900 text-sm font-mono">
+                    {formatCurrency(p.preco_unitario)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Ação: Editar Preço */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingProduct(p);
+                  setNewPrice(p.preco_unitario.toString());
+                }}
+                className="w-full py-2 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-bold rounded-2xl border border-slate-200 hover:border-blue-200 text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+              >
+                <Edit2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Editar Preço</span>
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* ============================================================== */}
+        {/* LISTAGEM DESKTOP: TABELA HORIZONTAL COMPLETA                   */}
+        {/* ============================================================== */}
+        <div className="hidden md:block rounded-3xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -364,6 +439,7 @@ export const ProdutosPage: React.FC = () => {
             </span>
           </div>
         </div>
+      </>
       )}
 
       {/* Modal Editar Preço */}

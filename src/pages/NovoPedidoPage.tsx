@@ -9,6 +9,7 @@ import {
   X,
   User,
   ShoppingBag,
+  Package,
   Shield,
   Lightbulb,
   Cpu,
@@ -33,7 +34,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { Cliente, Produto, TipoPagamento, Pedido, ItemPedido } from '../types/database';
 import { formatCurrency, formatPhone, formatOrderCode, maskPhone } from '../lib/utils';
-import { maskCep, buscarCep, formatarEnderecoCompleto } from '../lib/cep';
+import { maskCep, buscarCep, formatarEnderecoCompleto, formatarEnderecoListagem } from '../lib/cep';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
 import { OrcamentoPdfModal } from '../components/OrcamentoPdfModal';
@@ -65,6 +66,11 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
   const [clientSearchTerm, setClientSearchTerm] = useState('');
   const clientDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Combobox pesquisável para adicionar produtos diretamente ao orçamento
+  const [isProductSelectOpen, setIsProductSelectOpen] = useState(false);
+  const [productSelectSearch, setProductSelectSearch] = useState('');
+  const productSelectRef = useRef<HTMLDivElement>(null);
 
   // Modal Novo Cliente
   const [isNewClientModalOpen, setIsNewClientModalOpen] = useState(false);
@@ -188,10 +194,24 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
       if (clientDropdownRef.current && !clientDropdownRef.current.contains(e.target as Node)) {
         setIsClientDropdownOpen(false);
       }
+      if (productSelectRef.current && !productSelectRef.current.contains(e.target as Node)) {
+        setIsProductSelectOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const filteredSelectProdutos = useMemo(() => {
+    if (!productSelectSearch.trim()) return produtos.slice(0, 10);
+    const term = productSelectSearch.toLowerCase().trim();
+    return produtos.filter(
+      (p) =>
+        p.nome.toLowerCase().includes(term) ||
+        p.categoria.toLowerCase().includes(term) ||
+        (p.descricao && p.descricao.toLowerCase().includes(term))
+    );
+  }, [produtos, productSelectSearch]);
 
   const filteredClientes = useMemo(() => {
     if (!clientSearchTerm.trim()) return clientes;
@@ -462,9 +482,9 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
       {/* Grid Layout: Lado Esquerdo (Catálogo) + Lado Direito (Detalhes do Pedido) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ============================================================== */}
-        {/* LADO ESQUERDO: Catálogo de Produtos e Categorias (8 Colunas) */}
+        {/* LADO ESQUERDO: Catálogo Desktop (Oculto em telas menores para priorizar o fluxo rápido do orçamento) */}
         {/* ============================================================== */}
-        <div className="lg:col-span-8 space-y-5">
+        <div className="hidden lg:block lg:col-span-8 space-y-5">
           {/* Pills de Categorias */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             {categorias.map((cat) => {
@@ -610,85 +630,195 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
         {/* ============================================================== */}
         {/* LADO DIREITO: Painel "Detalhes do Pedido" (4 Colunas)         */}
         {/* ============================================================== */}
-        <div className="lg:col-span-4 sticky top-20">
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between min-h-[640px]">
+        <div className="w-full lg:col-span-4 lg:sticky lg:top-20">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between min-h-[640px]">
             {detalhesMode === 'edicao' ? (
               /* ============================================================== */
-              /* FASE 1: EDIÇÃO DO CARRINHO E SELEÇÃO DE CLIENTE               */
+              /* FASE 1: EDIÇÃO DO ORÇAMENTO E SELEÇÃO DE CLIENTE               */
               /* ============================================================== */
               <>
                 <div>
                   {/* Header do Detalhes do Pedido */}
-                  <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                    <h3 className="font-extrabold text-lg text-slate-900">Detalhes do Pedido</h3>
+                  <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+                    <div>
+                      <h3 className="font-extrabold text-base sm:text-lg text-slate-900">Novo Orçamento</h3>
+                      <p className="text-[11px] text-slate-400">Adicione produtos e selecione o cliente</p>
+                    </div>
                     {cart.length > 0 && (
                       <button
                         onClick={() => setCart([])}
-                        className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="text-slate-400 hover:text-rose-500 p-1.5 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1"
                         title="Limpar itens"
                       >
-                        <X className="w-5 h-5" />
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Limpar</span>
                       </button>
                     )}
                   </div>
 
-                  {/* Lista dos Itens do Pedido */}
-                  <div className="divide-y divide-slate-100 max-h-[280px] overflow-y-auto pr-1 my-3">
-                    {cart.length === 0 ? (
-                      <div className="py-14 text-center text-slate-400">
-                        <ShoppingBag className="w-12 h-12 mx-auto mb-2 opacity-25" />
-                        <p className="text-xs font-semibold text-slate-600">Seu pedido está vazio</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          Clique em "+ Adicionar" na tabela para incluir itens
-                        </p>
+                  {/* SELECT COM PESQUISA PARA ADICIONAR PRODUTOS (Foco principal da criação ágil) */}
+                  <div className="my-3.5 relative" ref={productSelectRef}>
+                    <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center justify-between mb-1.5">
+                      <span className="flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5 text-blue-600" />
+                        Adicionar Produto
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{produtos.length} disponíveis</span>
+                    </label>
+
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Buscar produto por nome, código..."
+                        value={productSelectSearch}
+                        onFocus={() => setIsProductSelectOpen(true)}
+                        onChange={(e) => {
+                          setProductSelectSearch(e.target.value);
+                          setIsProductSelectOpen(true);
+                        }}
+                        className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      />
+                      {productSelectSearch && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProductSelectSearch('');
+                            setIsProductSelectOpen(false);
+                          }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Dropdown de produtos encontrados */}
+                    {isProductSelectOpen && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 p-2 space-y-1 max-h-60 overflow-y-auto animate-fade-in">
+                        {filteredSelectProdutos.length === 0 ? (
+                          <div className="py-4 text-center text-xs text-slate-400">
+                            Nenhum produto encontrado para "{productSelectSearch}".
+                          </div>
+                        ) : (
+                          filteredSelectProdutos.map((p) => {
+                            return (
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => {
+                                  addToCart(p);
+                                  setProductSelectSearch('');
+                                  setIsProductSelectOpen(false);
+                                  showToast('success', `${p.nome} adicionado!`);
+                                }}
+                                className="w-full text-left p-2.5 rounded-xl text-xs hover:bg-blue-50/70 transition-colors flex items-center justify-between gap-2 cursor-pointer group"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-bold text-slate-900 group-hover:text-blue-700 transition-colors truncate">
+                                    {p.nome}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                                      {p.categoria}
+                                    </span>
+                                    {p.descricao && (
+                                      <span className="text-[11px] text-slate-400 truncate max-w-[180px]">
+                                        {p.descricao}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-right shrink-0 flex items-center gap-2">
+                                  <span className="font-extrabold text-slate-900 text-xs font-mono">
+                                    {formatCurrency(p.preco_unitario)}
+                                  </span>
+                                  <span className="p-1 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <Plus className="w-3.5 h-3.5" />
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
                       </div>
-                    ) : (
-                      cart.map((item) => {
-                        return (
-                          <div key={item.produto.id} className="py-2.5 flex items-center justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <h5 className="font-bold text-xs text-slate-900 truncate">
-                                {item.produto.nome}
-                              </h5>
-                              <div className="flex items-baseline gap-1.5 mt-0.5">
-                                <span className="text-xs font-extrabold text-slate-900">
-                                  {formatCurrency(item.produto.preco_unitario)}
-                                </span>
+                    )}
+                  </div>
+
+                  {/* Lista de Produtos do Orçamento */}
+                  <div className="space-y-1.5 mb-3">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <ShoppingBag className="w-3.5 h-3.5 text-blue-600" />
+                        Produtos no Orçamento ({cart.reduce((a, b) => a + b.quantidade, 0)})
+                      </span>
+                    </div>
+
+                    <div className="divide-y divide-slate-100 max-h-[260px] sm:max-h-[300px] overflow-y-auto pr-1">
+                      {cart.length === 0 ? (
+                        <div className="py-8 text-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 p-4">
+                          <Package className="w-8 h-8 mx-auto mb-1.5 opacity-30 text-blue-600" />
+                          <p className="text-xs font-semibold text-slate-700">Nenhum produto adicionado</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            Busque no campo acima para incluir no orçamento
+                          </p>
+                        </div>
+                      ) : (
+                        cart.map((item) => {
+                          const itemTotal = item.produto.preco_unitario * item.quantidade;
+                          return (
+                            <div key={item.produto.id} className="py-2.5 flex items-center justify-between gap-2.5">
+                              <div className="flex-1 min-w-0">
+                                <h5 className="font-bold text-xs text-slate-900 truncate">
+                                  {item.produto.nome}
+                                </h5>
+                                <div className="flex items-baseline gap-2 mt-0.5">
+                                  <span className="text-[11px] text-slate-500">
+                                    {formatCurrency(item.produto.preco_unitario)}
+                                  </span>
+                                  <span className="text-xs font-extrabold text-blue-700">
+                                    = {formatCurrency(itemTotal)}
+                                  </span>
+                                </div>
                               </div>
 
-                              {/* Stepper inline compacto [- 1 +] */}
-                              <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-600">
+                              {/* Stepper compacto [- 1 +] */}
+                              <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-0.5 shrink-0">
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(item.produto.id, -1)}
-                                  className="text-slate-400 hover:text-slate-800 font-bold px-1 cursor-pointer"
+                                  className="w-6 h-6 rounded-lg bg-white hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer shadow-2xs"
+                                  title="Diminuir"
                                 >
-                                  -
+                                  <Minus className="w-3 h-3" />
                                 </button>
-                                <span className="font-extrabold text-slate-800">{item.quantidade}</span>
+                                <span className="font-extrabold text-xs px-2 text-slate-900 min-w-4 text-center">
+                                  {item.quantidade}
+                                </span>
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(item.produto.id, 1)}
-                                  className="text-slate-400 hover:text-slate-800 font-bold px-1 cursor-pointer"
+                                  className="w-6 h-6 rounded-lg bg-white hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer shadow-2xs"
+                                  title="Aumentar"
                                 >
-                                  +
+                                  <Plus className="w-3 h-3" />
                                 </button>
                               </div>
-                            </div>
 
-                            {/* Botão Remover Lixeira */}
-                            <button
-                              type="button"
-                              onClick={() => removeFromCart(item.produto.id)}
-                              className="text-slate-400 hover:text-rose-500 transition-colors p-1.5 cursor-pointer"
-                              title="Remover item"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        );
-                      })
-                    )}
+                              {/* Botão Remover Lixeira */}
+                              <button
+                                type="button"
+                                onClick={() => removeFromCart(item.produto.id)}
+                                className="text-slate-400 hover:text-rose-500 transition-colors p-1.5 cursor-pointer shrink-0"
+                                title="Remover item"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -792,7 +922,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
                                       {c.endereco && (
                                         <p className="text-[10px] text-slate-500 truncate flex items-center gap-1 mt-0.5">
                                           <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                                          {c.endereco}
+                                          {formatarEnderecoListagem(c)}
                                         </p>
                                       )}
                                     </div>

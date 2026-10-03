@@ -89,6 +89,31 @@ export const formatarEnderecoCompleto = (end: Partial<EnderecoEstruturado>): str
 };
 
 /**
+ * Formata o endereço para exibição na listagem de clientes,
+ * ocultando intencionalmente o complemento e a referência.
+ */
+export const formatarEnderecoListagem = (cliente: {
+  logradouro?: string | null;
+  numero?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  endereco?: string | null;
+}): string => {
+  if (cliente.logradouro) {
+    const partes: string[] = [];
+    const ruaNum = [cliente.logradouro?.trim(), cliente.numero?.trim()].filter(Boolean).join(', ');
+    if (ruaNum) partes.push(ruaNum);
+    if (cliente.bairro?.trim()) partes.push(cliente.bairro.trim());
+    const cidadeUf = [cliente.cidade?.trim(), cliente.estado?.trim()].filter(Boolean).join(' - ');
+    if (cidadeUf) partes.push(cidadeUf);
+    return partes.join(', ');
+  }
+
+  return cliente.endereco || 'Endereço não informado';
+};
+
+/**
  * Gera URL de busca no Google Maps
  */
 export const getGoogleMapsUrl = (endereco: string): string => {

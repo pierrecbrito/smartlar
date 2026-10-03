@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogIn, UserPlus, X, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { LogIn, UserPlus, X, Mail, Lock, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from './Toast';
 import { ModalPortal } from './ModalPortal';
@@ -59,8 +59,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
         <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center p-1 overflow-hidden shrink-0">
-              <img src="/logo.png" alt="SmartLar" className="w-full h-full object-contain" />
+            <div className="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-white" />
             </div>
             <div>
               <h3 className="font-bold text-white text-base leading-tight">

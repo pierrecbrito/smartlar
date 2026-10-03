@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ToastProvider } from './components/Toast';
 import { NavTab } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
@@ -9,17 +9,59 @@ import { PedidosPage } from './pages/PedidosPage';
 import { AgendaPage } from './pages/AgendaPage';
 import { ClientesPage } from './pages/ClientesPage';
 import { ProdutosPage } from './pages/ProdutosPage';
-import { getSupabaseConfig } from './lib/supabase';
-import { AlertTriangle, ShieldCheck, Database } from 'lucide-react';
-import { ConfigModal } from './components/ConfigModal';
+import { LoginPage } from './pages/LoginPage';
+import { supabase } from './lib/supabase';
+import { ShieldCheck, Loader2 } from 'lucide-react';
 import { AuthModal } from './components/AuthModal';
+import { BottomNav } from './components/BottomNav';
 
 export const AppContent: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const { isConfigured } = getSupabaseConfig();
+  const [session, setSession] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Tela de Carregamento Inicial
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#d8dde8] flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3 animate-fade-in">
+          <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/30 animate-pulse">
+            <ShieldCheck className="w-8 h-8 text-white" />
+          </div>
+          <div className="text-center">
+            <h2 className="font-extrabold text-base text-slate-900 tracking-tight">
+              SMART<span className="text-blue-600">LAR</span>
+            </h2>
+            <p className="text-xs text-slate-500 font-medium mt-0.5 flex items-center justify-center gap-1.5">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+              <span>Verificando autenticação...</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Se não estiver logado, exibe a Tela de Login dedicada
+  if (!session) {
+    return <LoginPage onLoginSuccess={() => {}} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#d8dde8] text-slate-800 font-sans flex flex-col">
@@ -29,7 +71,6 @@ export const AppContent: React.FC = () => {
         onTabChange={setCurrentTab}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        onOpenConfig={() => setIsConfigOpen(true)}
       />
 
       {/* Main Area with Left Margin for the Akino Sidebar (w-64 on desktop) */}
@@ -39,30 +80,11 @@ export const AppContent: React.FC = () => {
           currentTab={currentTab}
           onTabChange={setCurrentTab}
           onOpenSidebar={() => setIsSidebarOpen(true)}
-          onOpenConfig={() => setIsConfigOpen(true)}
           onOpenAuth={() => setIsAuthOpen(true)}
         />
 
-        {/* Supabase Notice Banner */}
-        {!isConfigured && (
-          <div className="mx-4 sm:mx-6 lg:mx-8 mb-4 bg-amber-500 text-slate-950 px-4 py-2.5 rounded-2xl shadow-xs text-xs font-semibold flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-slate-950" />
-              <span>
-                <b>Atenção:</b> Credenciais do Supabase ausentes no <code className="bg-amber-400 px-1 py-0.5 rounded font-mono">.env</code>.
-              </span>
-            </div>
-            <button
-              onClick={() => setIsConfigOpen(true)}
-              className="px-3 py-1 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors shrink-0 text-[11px] font-bold"
-            >
-              Configurar DB
-            </button>
-          </div>
-        )}
-
         {/* Main View Container */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-10 max-w-[1600px] w-full mx-auto">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-28 sm:pb-32 lg:pb-10 max-w-[1600px] w-full mx-auto">
           {currentTab === 'dashboard' && <DashboardPage onNavigate={setCurrentTab} />}
           {currentTab === 'novo-pedido' && <NovoPedidoPage onNavigate={setCurrentTab} />}
           {currentTab === 'pedidos' && <PedidosPage />}
@@ -72,8 +94,10 @@ export const AppContent: React.FC = () => {
         </main>
       </div>
 
+      {/* Mobile Bottom Navigation (App-like centered icon-only bar) */}
+      <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />
+
       {/* Modais */}
-      <ConfigModal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} />
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} onSuccess={() => {}} />
     </div>
   );

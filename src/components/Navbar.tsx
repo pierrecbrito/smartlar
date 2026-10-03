@@ -6,7 +6,6 @@ import {
   Calendar,
   Users,
   Package,
-  Database,
   LogIn,
   LogOut,
   User,
@@ -14,8 +13,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { supabase, getSupabaseConfig } from '../lib/supabase';
-import { ConfigModal } from './ConfigModal';
+import { supabase } from '../lib/supabase';
 import { AuthModal } from './AuthModal';
 import { useToast } from './Toast';
 
@@ -27,11 +25,9 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
-  const [configModalOpen, setConfigModalOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const { isConfigured } = getSupabaseConfig();
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -125,23 +121,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
                 Novo Pedido
               </button>
 
-              {/* Status Pill */}
-              <button
-                onClick={() => setConfigModalOpen(true)}
-                title="Configurações de Conexão"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-                  isConfigured
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100/70'
-                    : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 animate-pulse'
-                }`}
-              >
-                <Database className="w-3.5 h-3.5" />
-                <span className="hidden lg:inline">
-                  {isConfigured ? 'Sistema Conectado' : 'Conectar Sistema'}
-                </span>
-                <span className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-              </button>
-
               {/* User / Auth */}
               {user ? (
                 <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
@@ -213,7 +192,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
         )}
       </header>
 
-      <ConfigModal isOpen={configModalOpen} onClose={() => setConfigModalOpen(false)} />
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} onSuccess={() => {}} />
     </>
   );
