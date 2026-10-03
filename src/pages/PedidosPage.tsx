@@ -18,7 +18,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Pedido, Tecnico, StatusPedido, TipoPagamento, HistoricoStatus } from '../types/database';
+import { Pedido, Tecnico, StatusPedido, HistoricoStatus } from '../types/database';
 import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, STATUS_CONFIG, PROXIMOS_STATUS } from '../lib/utils';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
@@ -46,7 +46,6 @@ export const PedidosPage: React.FC = () => {
   const [schedulingOrder, setSchedulingOrder] = useState<Pedido | null>(null);
   const [scheduleTecnicoId, setScheduleTecnicoId] = useState('');
   const [scheduleData, setScheduleData] = useState('');
-  const [scheduleFormaPgto, setScheduleFormaPgto] = useState<TipoPagamento | ''>('pix');
   const [savingSchedule, setSavingSchedule] = useState(false);
 
   // Modal de Histórico de Auditoria
@@ -165,7 +164,6 @@ export const PedidosPage: React.FC = () => {
       setSchedulingOrder(pedido);
       setScheduleTecnicoId(pedido.tecnico_id || (tecnicos[0]?.id || ''));
       setScheduleData('');
-      setScheduleFormaPgto(pedido.forma_pagamento || 'pix');
       return;
     }
 
@@ -213,7 +211,6 @@ export const PedidosPage: React.FC = () => {
           status: 'agendado',
           tecnico_id: scheduleTecnicoId,
           data_instalacao: isoDate,
-          forma_pagamento: scheduleFormaPgto || null,
         })
         .eq('id', schedulingOrder.id);
 
@@ -903,22 +900,7 @@ export const PedidosPage: React.FC = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Forma de Pagamento
-                  </label>
-                  <select
-                    value={scheduleFormaPgto}
-                    onChange={(e) => setScheduleFormaPgto(e.target.value as TipoPagamento)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="pix">PIX</option>
-                    <option value="cartao_credito">Cartão de Crédito</option>
-                    <option value="cartao_debito">Cartão de Débito</option>
-                    <option value="boleto">Boleto</option>
-                    <option value="dinheiro">Dinheiro</option>
-                  </select>
-                </div>
+
 
                 <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                   <button
