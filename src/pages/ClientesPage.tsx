@@ -18,13 +18,14 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Cliente, Pedido } from '../types/database';
-import { formatPhone, formatDateTime, formatCurrency, STATUS_CONFIG } from '../lib/utils';
+import { formatPhone, formatDateTime, formatCurrency, formatOrderCode, STATUS_CONFIG } from '../lib/utils';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
 
 interface ClienteComPedidos extends Cliente {
   pedidos?: Array<{
     id: string;
+    numero_pedido?: number;
     status: string;
     valor_total: number;
   }>;
@@ -57,7 +58,7 @@ export const ClientesPage: React.FC = () => {
         .from('clientes')
         .select(`
           *,
-          pedidos:pedidos(id, status, valor_total)
+          pedidos:pedidos(id, numero_pedido, status, valor_total)
         `)
         .order('nome', { ascending: true });
 
@@ -118,7 +119,7 @@ export const ClientesPage: React.FC = () => {
         })
         .select(`
           *,
-          pedidos:pedidos(id, status, valor_total)
+          pedidos:pedidos(id, numero_pedido, status, valor_total)
         `)
         .single();
 
@@ -423,7 +424,7 @@ export const ClientesPage: React.FC = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <span className="font-mono font-bold text-xs bg-white text-slate-700 px-2 py-0.5 rounded border border-slate-200">
-                                #{pedido.id.slice(0, 8)}
+                                {formatOrderCode(pedido)}
                               </span>
                               <span
                                 className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${st.bg} ${st.text} ${st.border}`}

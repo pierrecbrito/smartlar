@@ -49,6 +49,17 @@ export function formatPhone(phone: string | null | undefined): string {
   return phone;
 }
 
+export function formatOrderCode(pedido: { numero_pedido?: number; id?: string } | null | undefined): string {
+  if (!pedido) return '-';
+  if (pedido.numero_pedido !== undefined && pedido.numero_pedido !== null) {
+    return `#${pedido.numero_pedido}`;
+  }
+  if (pedido.id) {
+    return `#${pedido.id.slice(0, 8)}`;
+  }
+  return '-';
+}
+
 export const STATUS_CONFIG: Record<
   StatusPedido,
   { label: string; bg: string; text: string; border: string; desc: string; dot: string }

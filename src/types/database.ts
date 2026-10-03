@@ -34,6 +34,7 @@ export interface Produto {
 
 export interface Pedido {
   id: string;
+  numero_pedido?: number;
   cliente_id: string;
   tecnico_id: string | null;
   status: StatusPedido;

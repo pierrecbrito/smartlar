@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Pedido, Tecnico, StatusPedido, TipoPagamento } from '../types/database';
-import { formatCurrency, formatDateTime, formatDate, formatPhone, STATUS_CONFIG } from '../lib/utils';
+import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, STATUS_CONFIG } from '../lib/utils';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -949,8 +949,8 @@ export const AgendaPage: React.FC = () => {
             {/* Cabeçalho */}
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-slate-400">
-                  #{selectedEvent.id.slice(0, 8)}
+                <span className="font-mono text-xs font-bold text-slate-500">
+                  {formatOrderCode(selectedEvent)}
                 </span>
                 <span
                   className={`text-xs font-bold px-3 py-0.5 rounded-full border ${
@@ -1204,7 +1204,7 @@ export const AgendaPage: React.FC = () => {
                     Remarcar Instalação
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    {reschedulingOrder.cliente?.nome} • #{reschedulingOrder.id.slice(0, 8)}
+                    {reschedulingOrder.cliente?.nome} • {formatOrderCode(reschedulingOrder)}
                   </p>
                 </div>
               </div>

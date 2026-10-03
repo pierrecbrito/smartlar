@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Pedido, Tecnico, StatusPedido, TipoPagamento, HistoricoStatus } from '../types/database';
-import { formatCurrency, formatDateTime, formatDate, formatPhone, STATUS_CONFIG, PROXIMOS_STATUS } from '../lib/utils';
+import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, STATUS_CONFIG, PROXIMOS_STATUS } from '../lib/utils';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -95,8 +95,10 @@ export const PedidosPage: React.FC = () => {
   const filteredPedidos = pedidos.filter((p) => {
     const matchStatus =
       viewMode === 'kanban' || selectedStatusFilter === 'todos' || p.status === selectedStatusFilter;
+    const searchClean = search.trim().toLowerCase().replace('#', '');
     const matchSearch =
       search.trim() === '' ||
+      p.numero_pedido?.toString().includes(searchClean) ||
       p.id.toLowerCase().includes(search.toLowerCase()) ||
       p.cliente?.nome?.toLowerCase().includes(search.toLowerCase()) ||
       p.tecnico?.nome?.toLowerCase().includes(search.toLowerCase()) ||
@@ -178,7 +180,7 @@ export const PedidosPage: React.FC = () => {
       showToast(
         'success',
         `Status atualizado para "${STATUS_CONFIG[novoStatus].label}"`,
-        `Pedido #${pedido.id.slice(0, 8)} avançou no fluxo.`
+        `Pedido ${formatOrderCode(pedido)} avançou no fluxo.`
       );
 
       loadData();
@@ -496,7 +498,7 @@ export const PedidosPage: React.FC = () => {
                               <div className="flex items-center gap-1.5">
                                 <span className={`w-2 h-2 rounded-full ${colConfig.dot}`} />
                                 <span className="font-mono font-bold text-slate-800">
-                                  #{pedido.id.slice(0, 8)}
+                                  {formatOrderCode(pedido)}
                                 </span>
                               </div>
                               <span className="text-slate-400 font-medium text-[10px]">
@@ -680,7 +682,7 @@ export const PedidosPage: React.FC = () => {
                   <div className="space-y-3 flex-1">
                     <div className="flex flex-wrap items-center gap-2.5">
                       <span className="font-mono font-bold text-xs bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg border border-slate-200/60">
-                        #{pedido.id.slice(0, 8)}
+                        {formatOrderCode(pedido)}
                       </span>
                       <span
                         className={`text-xs font-bold px-3 py-0.5 rounded-full border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
@@ -852,7 +854,7 @@ export const PedidosPage: React.FC = () => {
               <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-blue-600" />
-                  Agendar Instalação (#{schedulingOrder.id.slice(0, 8)})
+                  Agendar Instalação ({formatOrderCode(schedulingOrder)})
                 </h3>
                 <button
                   onClick={() => setSchedulingOrder(null)}
@@ -948,7 +950,7 @@ export const PedidosPage: React.FC = () => {
               <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                   <History className="w-4 h-4 text-blue-600" />
-                  Auditoria de Status (#{historyOrder.id.slice(0, 8)})
+                  Auditoria de Status ({formatOrderCode(historyOrder)})
                 </h3>
                 <button
                   onClick={() => setHistoryOrder(null)}
@@ -1006,7 +1008,7 @@ export const PedidosPage: React.FC = () => {
               <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                 <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                   <ClipboardList className="w-4 h-4 text-blue-600" />
-                  Itens do Pedido #{viewingOrder.id.slice(0, 8)}
+                  Itens do Pedido {formatOrderCode(viewingOrder)}
                 </h3>
                 <button
                   onClick={() => setViewingOrder(null)}

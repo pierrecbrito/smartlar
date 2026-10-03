@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Cliente, Produto, TipoPagamento } from '../types/database';
-import { formatCurrency, formatPhone } from '../lib/utils';
+import { formatCurrency, formatPhone, formatOrderCode } from '../lib/utils';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
 
@@ -77,6 +77,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
   // Modal de sucesso pós-criação
   const [createdOrderSummary, setCreatedOrderSummary] = useState<{
     id: string;
+    numero_pedido?: number;
     valor_total: number;
     clienteNome: string;
     itensCount: number;
@@ -302,7 +303,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
 
       const { data: pedidoCriado, error: fetchError } = await supabase
         .from('pedidos')
-        .select('id, valor_total, cliente:clientes(nome)')
+        .select('id, numero_pedido, valor_total, cliente:clientes(nome)')
         .eq('id', newOrderId)
         .single();
 
@@ -310,15 +311,17 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
 
       const clienteNome = (pedidoCriado as any)?.cliente?.nome || 'Cliente';
       const valorTotalFinal = pedidoCriado.valor_total;
+      const numeroPedido = (pedidoCriado as any)?.numero_pedido;
 
       showToast(
         'success',
         'Orçamento criado com sucesso!',
-        `Pedido #${newOrderId.slice(0, 8)} gravado com valor de ${formatCurrency(valorTotalFinal)}.`
+        `Pedido ${formatOrderCode({ id: newOrderId, numero_pedido: numeroPedido })} gravado com valor de ${formatCurrency(valorTotalFinal)}.`
       );
 
       setCreatedOrderSummary({
         id: newOrderId,
+        numero_pedido: numeroPedido,
         valor_total: valorTotalFinal,
         clienteNome,
         itensCount: cart.length,
@@ -1162,7 +1165,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
               <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl text-xs text-left space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Número do Pedido:</span>
-                  <span className="font-mono font-bold text-slate-900">#{createdOrderSummary.id.slice(0, 8)}</span>
+                  <span className="font-mono font-bold text-slate-900">{formatOrderCode(createdOrderSummary)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Cliente:</span>

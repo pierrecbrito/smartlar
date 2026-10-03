@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Pedido, Tecnico, StatusPedido } from '../types/database';
-import { formatCurrency, formatDateTime, formatDate, formatPhone, STATUS_CONFIG } from '../lib/utils';
+import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, STATUS_CONFIG } from '../lib/utils';
 import { useToast } from '../components/Toast';
 
 interface DashboardPageProps {
@@ -249,8 +249,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const pedidosConsultaFiltrados = useMemo(() => {
     if (!searchConsulta.trim()) return [];
     const termo = searchConsulta.toLowerCase();
+    const termoClean = termo.replace('#', '');
     return pedidos.filter(
       (p) =>
+        p.numero_pedido?.toString().includes(termoClean) ||
         p.id.toLowerCase().includes(termo) ||
         p.cliente?.nome?.toLowerCase().includes(termo) ||
         p.cliente?.telefone?.includes(termo) ||
@@ -344,8 +346,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                           {conf.label}
                         </span>
-                        <span className="font-mono text-[11px] text-slate-400 font-bold">
-                          #{p.id.slice(0, 8)}
+                        <span className="font-mono text-[11px] text-slate-500 font-bold">
+                          {formatOrderCode(p)}
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-500 mt-0.5">
@@ -701,7 +703,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </div>
               ) : (
                 orcamentosAguardando.map((p) => {
-                  const msgWhatsapp = `Olá ${p.cliente?.nome}! Aqui é o Rafael da SmartLar Automação e Segurança. Gostaria de saber se você teve a oportunidade de ver a proposta que montamos (#${p.id.slice(0, 8)}) no valor de ${formatCurrency(p.valor_total)}. Ficou alguma dúvida técnica ou sobre os equipamentos?`;
+                  const msgWhatsapp = `Olá ${p.cliente?.nome}! Aqui é o Rafael da SmartLar Automação e Segurança. Gostaria de saber se você teve a oportunidade de ver a proposta que montamos (${formatOrderCode(p)}) no valor de ${formatCurrency(p.valor_total)}. Ficou alguma dúvida técnica ou sobre os equipamentos?`;
                   const linkWhatsapp = `https://wa.me/55${(p.cliente?.telefone || '').replace(/\D/g, '')}?text=${encodeURIComponent(msgWhatsapp)}`;
 
                   return (

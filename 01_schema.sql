@@ -46,6 +46,7 @@ create unique index produtos_nome_uk on produtos (lower(nome));
 
 create table pedidos (
   id               uuid primary key default gen_random_uuid(),
+  numero_pedido    serial unique,
   cliente_id       uuid not null references clientes(id) on delete restrict,
   tecnico_id       uuid references tecnicos(id) on delete restrict,
   status           status_pedido not null default 'orcamento',
