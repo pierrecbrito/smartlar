@@ -371,16 +371,25 @@ export const ProdutosPage: React.FC = () => {
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <Edit2 className="w-4 h-4 text-blue-600" />
-                  Editar Preço do Produto
-                </h3>
+              <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
+                    <Edit2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-base leading-tight">
+                      Editar Preço do Produto
+                    </h3>
+                    <p className="text-xs text-blue-100 font-medium">
+                      Atualize o valor de catálogo
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setEditingProduct(null)}
-                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -435,16 +444,25 @@ export const ProdutosPage: React.FC = () => {
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-blue-600" />
-                  Cadastrar Novo Equipamento
-                </h3>
+              <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
+                    <Plus className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-base leading-tight">
+                      Cadastrar Novo Equipamento
+                    </h3>
+                    <p className="text-xs text-blue-100 font-medium">
+                      Adicione itens ao catálogo da SmartLar
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setModalOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 

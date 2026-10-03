@@ -75,7 +75,8 @@ smartlar/
 │   ├── database/         # Scripts SQL e migrações do banco
 │   │   ├── 01_schema.sql # DDL de tabelas, enums, triggers, views e RPC
 │   │   ├── 02_seed.sql   # Carga inicial com cenários de teste realistas
-│   │   └── 03_rls.sql    # Políticas de Row Level Security
+│   │   ├── 03_rls.sql    # Políticas de Row Level Security
+│   │   └── 04_storage_orcamentos.sql # Setup do bucket 'orcamentos' e policies
 │   └── docs/             # Documentos de apoio, decisões e histórico
 │       ├── DECISIONS.md  # Registro detalhado das decisões arquiteturais
 │       ├── IA-LOG.md     # Registro de transparência do uso de IA

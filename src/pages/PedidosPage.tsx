@@ -17,12 +17,15 @@ import {
   AlertCircle,
   AlertTriangle,
   Lock,
+  FileText,
+  Share2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Pedido, Tecnico, StatusPedido, HistoricoStatus } from '../types/database';
 import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, getCurrentDateTimeLocal, STATUS_CONFIG, PROXIMOS_STATUS } from '../lib/utils';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
+import { OrcamentoPdfModal } from '../components/OrcamentoPdfModal';
 
 const KANBAN_COLUMNS: StatusPedido[] = [
   'orcamento',
@@ -56,6 +59,9 @@ export const PedidosPage: React.FC = () => {
 
   // Modal de Detalhes dos Itens do Pedido
   const [viewingOrder, setViewingOrder] = useState<Pedido | null>(null);
+
+  // Modal de Proposta PDF e Envio WhatsApp
+  const [pdfModalOrder, setPdfModalOrder] = useState<Pedido | null>(null);
 
   const { showToast } = useToast();
 
@@ -612,6 +618,14 @@ export const PedidosPage: React.FC = () => {
                                 >
                                   <History className="w-3.5 h-3.5" />
                                 </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setPdfModalOrder(pedido)}
+                                  title="Gerar Proposta PDF / WhatsApp"
+                                  className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  <FileText className="w-3.5 h-3.5" />
+                                </button>
 
                                 {allowedTransitions.map((nextStatus) => {
                                   if (nextStatus === 'aprovado') {
@@ -808,6 +822,16 @@ export const PedidosPage: React.FC = () => {
                       <span className="hidden sm:inline">Histórico</span>
                     </button>
 
+                    <button
+                      type="button"
+                      onClick={() => setPdfModalOrder(pedido)}
+                      className="p-2.5 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 border border-emerald-200/80 rounded-2xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      title="Proposta em PDF / WhatsApp"
+                    >
+                      <FileText className="w-4 h-4 text-emerald-600" />
+                      <span className="hidden sm:inline">PDF / WhatsApp</span>
+                    </button>
+
                     {/* Transições permitidas */}
                     {allowedTransitions.map((nextStatus) => {
                       if (nextStatus === 'aprovado') {
@@ -898,16 +922,25 @@ export const PedidosPage: React.FC = () => {
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-blue-600" />
-                  Agendar Instalação ({formatOrderCode(schedulingOrder)})
-                </h3>
+              <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-base leading-tight">
+                      Agendar Instalação
+                    </h3>
+                    <p className="text-xs text-blue-100 font-medium">
+                      Pedido {formatOrderCode(schedulingOrder)}
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setSchedulingOrder(null)}
-                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -992,16 +1025,25 @@ export const PedidosPage: React.FC = () => {
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <History className="w-4 h-4 text-blue-600" />
-                  Histórico do Pedido ({formatOrderCode(historyOrder)})
-                </h3>
+              <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
+                    <History className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-base leading-tight">
+                      Histórico do Pedido
+                    </h3>
+                    <p className="text-xs text-blue-100 font-medium">
+                      {formatOrderCode(historyOrder)}
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setHistoryOrder(null)}
-                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -1050,16 +1092,25 @@ export const PedidosPage: React.FC = () => {
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <ClipboardList className="w-4 h-4 text-blue-600" />
-                  Itens do Pedido {formatOrderCode(viewingOrder)}
-                </h3>
+              <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
+                    <ClipboardList className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-base leading-tight">
+                      Itens do Pedido
+                    </h3>
+                    <p className="text-xs text-blue-100 font-medium">
+                      {formatOrderCode(viewingOrder)}
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setViewingOrder(null)}
-                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -1092,10 +1143,39 @@ export const PedidosPage: React.FC = () => {
                     {formatCurrency(viewingOrder.valor_total)}
                   </span>
                 </div>
+
+                {viewingOrder.cliente && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const orderToOpen = viewingOrder;
+                      setViewingOrder(null);
+                      setPdfModalOrder(orderToOpen);
+                    }}
+                    className="w-full mt-3 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Gerar Proposta PDF / Enviar WhatsApp</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </ModalPortal>
+      )}
+
+      {/* Modal de Proposta Comercial em PDF e Envio WhatsApp */}
+      {pdfModalOrder && pdfModalOrder.cliente && (
+        <OrcamentoPdfModal
+          isOpen={Boolean(pdfModalOrder)}
+          onClose={() => setPdfModalOrder(null)}
+          pedido={pdfModalOrder}
+          cliente={pdfModalOrder.cliente}
+          itens={pdfModalOrder.itens || []}
+          descontoPercentual={0}
+          observacoes={pdfModalOrder.observacoes || ''}
+          formaPagamento={pdfModalOrder.forma_pagamento || ''}
+        />
       )}
     </div>
   );

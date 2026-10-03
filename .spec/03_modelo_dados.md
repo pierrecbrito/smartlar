@@ -35,18 +35,23 @@
 ## 2. Tabelas Principais
 
 ### 2.1 `clientes`
-Armazena a base de clientes físicos e jurídicos atendidos pela SmartLar.
+Armazena a base de clientes físicos e jurídicos atendidos pela SmartLar com endereço estruturado e busca automática por CEP.
 
 | Coluna | Tipo | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
 | `id` | `uuid` | PK, default `gen_random_uuid()` | Identificador único |
-| `nome` | `varchar(150)` | `not null` | Nome completo do cliente |
-| `email` | `varchar(150)` | `unique`, `check (email ~* '^.+@.+\..+$')` | E-mail corporativo/pessoal |
-| `telefone` | `varchar(20)` | `not null`, `check (telefone ~* '^[0-9()\-+ ]+$')` | Telefone celular / WhatsApp |
-| `endereco` | `varchar(255)` | `not null` | Logradouro e número |
-| `bairro` | `varchar(100)` | `null` | Bairro da residência |
-| `cidade` | `varchar(100)` | `not null`, default `'São Paulo'` | Cidade |
-| `estado` | `varchar(2)` | `not null`, default `'SP'` | UF (sigla) |
+| `nome` | `text` | `not null` | Nome completo do cliente |
+| `email` | `text` | `null`, `check (email ~* '^.+@.+\..+$')` | E-mail corporativo/pessoal |
+| `telefone` | `text` | `not null`, `check (between 10 and 13 digits)` | Telefone celular / WhatsApp |
+| `cep` | `varchar(9)` | `null` | CEP com máscara (ex: 51020-000) |
+| `logradouro` | `text` | `null` | Rua, Avenida, etc. |
+| `numero` | `text` | `null` | Número predial ou 'S/N' |
+| `complemento` | `text` | `null` | Apto, Bloco, Sala |
+| `bairro` | `text` | `null` | Bairro da instalação |
+| `cidade` | `text` | default `'Recife'` | Município |
+| `estado` | `varchar(2)` | default `'PE'` | UF |
+| `ponto_referencia` | `text` | `null` | Orientações de localização para a equipe técnica |
+| `endereco` | `text` | `not null` | Endereço completo consolidado |
 | `created_at` | `timestamptz` | default `now()` | Timestamp de criação |
 
 ### 2.2 `produtos`
@@ -76,7 +81,7 @@ Quadro de instaladores e técnicos de campo autorizados.
 | `ativo` | `boolean` | default `true` | Disponível na agenda |
 
 ### 2.4 `pedidos`
-Cabeçalho do pedido/orçamento e controle da máquina de estados.
+Cabeçalho do pedido/orçamento e controle da máquina de estados, com snapshot do endereço e ponto de referência.
 
 | Coluna | Tipo | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
@@ -86,7 +91,10 @@ Cabeçalho do pedido/orçamento e controle da máquina de estados.
 | `status` | `varchar(20)` | `check (status in ('orcamento', 'aprovado', 'agendado', 'em_andamento', 'concluido', 'cancelado'))` | Status do ciclo de vida |
 | `data_instalacao` | `timestamptz`| `null` | Data/hora da instalação |
 | `valor_total` | `numeric(12,2)` | default `0.00` | Total consolidado dos itens |
+| `forma_pagamento` | `tipo_pagamento` | `null` | Pix, Cartão, Boleto, etc. |
 | `observacoes` | `text` | `null` | Notas comerciais ou técnicas |
+| `endereco_instalacao` | `text` | `null` | Snapshot congelado do endereço no momento do pedido |
+| `ponto_referencia` | `text` | `null` | Snapshot da referência para a equipe técnica |
 | `concluido_em` | `timestamptz`| `null` | Data/hora de conclusão real |
 | `created_at` | `timestamptz` | default `now()` | Criação do orçamento |
 | `updated_at` | `timestamptz` | default `now()` | Última alteração |

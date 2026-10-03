@@ -22,12 +22,12 @@ insert into produtos (nome, categoria, preco_unitario, descricao) values
   ('Fita de LED Inteligente 5m',      'Iluminação',  140.00, 'Fita de LED endereçável com controle por app'),
   ('Interruptor Inteligente Wi-Fi',   'Iluminação',  110.00, 'Substitui o interruptor comum, sem trocar a fiação');
 
-insert into clientes (nome, telefone, email, endereco) values
-  ('Marina Costa',          '81988880001', 'marina.costa@email.com',   'Rua das Flores, 120, Apto 302 - Centro'),
-  ('Carlos Eduardo Ribeiro','81988880002', 'carlos.ribeiro@email.com', 'Av. Brasil, 845 - Jardim Primavera'),
-  ('Fernanda Lima',         '81988880003', 'fernanda.lima@email.com',  'Rua do Sol, 77 - Boa Vista'),
-  ('Roberto Nunes',         '81988880004', null,                       'Rua Pernambuco, 1500 - São José'),
-  ('Ana Paula Souza',       '81988880005', 'ana.souza@email.com',      'Travessa das Palmeiras, 33 - Cidade Nova');
+insert into clientes (nome, telefone, email, cep, logradouro, numero, complemento, bairro, cidade, estado, ponto_referencia, endereco) values
+  ('Marina Costa',          '81988880001', 'marina.costa@email.com',   '50050-000', 'Rua das Flores', '120', 'Apto 302', 'Boa Vista', 'Recife', 'PE', 'Próximo à Praça Maciel Pinheiro', 'Rua das Flores, 120, Apto 302, Boa Vista, Recife - PE (CEP: 50050-000)'),
+  ('Carlos Eduardo Ribeiro','81988880002', 'carlos.ribeiro@email.com', '51020-000', 'Av. Boa Viagem', '845', null, 'Boa Viagem', 'Recife', 'PE', 'Em frente ao Parque Dona Lindu', 'Av. Boa Viagem, 845, Boa Viagem, Recife - PE (CEP: 51020-000)'),
+  ('Fernanda Lima',         '81988880003', 'fernanda.lima@email.com',  '52060-000', 'Rua do Sol', '77', 'Casa', 'Parnamirim', 'Recife', 'PE', 'Portão preto com cerca viva', 'Rua do Sol, 77, Casa, Parnamirim, Recife - PE (CEP: 52060-000)'),
+  ('Roberto Nunes',         '81988880004', null,                       '50010-000', 'Rua Nova', '1500', 'Loja 4', 'Santo Antônio', 'Recife', 'PE', 'Ao lado da farmácia', 'Rua Nova, 1500, Loja 4, Santo Antônio, Recife - PE (CEP: 50010-000)'),
+  ('Ana Paula Souza',       '81988880005', 'ana.souza@email.com',      '52011-000', 'Rua das Palmeiras', '33', null, 'Espinheiro', 'Recife', 'PE', 'Edifício Solar das Palmeiras', 'Rua das Palmeiras, 33, Espinheiro, Recife - PE (CEP: 52011-000)');
 
 -- ---------- helper temporário (removido no final) ----------
 create or replace function seed_pedido(

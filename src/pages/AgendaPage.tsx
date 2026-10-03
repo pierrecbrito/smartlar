@@ -970,26 +970,30 @@ export const AgendaPage: React.FC = () => {
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-scale-up">
             {/* Cabeçalho */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-slate-500">
-                  {formatOrderCode(selectedEvent)}
-                </span>
-                <span
-                  className={`text-xs font-bold px-3 py-0.5 rounded-full border ${
-                    STATUS_CONFIG[selectedEvent.status].bg
-                  } ${STATUS_CONFIG[selectedEvent.status].text} ${
-                    STATUS_CONFIG[selectedEvent.status].border
-                  }`}
-                >
-                  {STATUS_CONFIG[selectedEvent.status].label}
-                </span>
+            <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
+                  <CalendarDays className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-white text-base leading-tight">
+                      Detalhes da Instalação
+                    </h3>
+                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-white/20 text-white border border-white/30">
+                      {formatOrderCode(selectedEvent)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-100 font-medium mt-0.5">
+                    {STATUS_CONFIG[selectedEvent.status].label}
+                  </p>
+                </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => setSelectedEvent(null)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1061,21 +1065,40 @@ export const AgendaPage: React.FC = () => {
                         Endereço de Instalação
                       </span>
                       <p className="text-slate-800 font-semibold mt-0.5">
-                        {selectedEvent.cliente?.endereco || 'Endereço não cadastrado'}
+                        {selectedEvent.endereco_instalacao || selectedEvent.cliente?.endereco || 'Endereço não cadastrado'}
                       </p>
+                      {(selectedEvent.ponto_referencia || selectedEvent.cliente?.ponto_referencia) && (
+                        <p className="text-[11px] text-blue-600 font-semibold mt-1 flex items-center gap-1">
+                          💡 Referência: {selectedEvent.ponto_referencia || selectedEvent.cliente?.ponto_referencia}
+                        </p>
+                      )}
                     </div>
-                    {selectedEvent.cliente?.endereco && (
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                          selectedEvent.cliente.endereco
-                        )}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-200/50 rounded-lg transition-colors"
-                        title="Abrir no Google Maps"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
+                    {(selectedEvent.endereco_instalacao || selectedEvent.cliente?.endereco) && (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            selectedEvent.endereco_instalacao || selectedEvent.cliente?.endereco || ''
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-slate-700 bg-white hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-lg transition-colors shadow-2xs"
+                          title="Abrir no Google Maps"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Maps</span>
+                        </a>
+                        <a
+                          href={`https://waze.com/ul?q=${encodeURIComponent(
+                            selectedEvent.endereco_instalacao || selectedEvent.cliente?.endereco || ''
+                          )}&navigate=yes`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition-colors shadow-2xs"
+                          title="Navegar com Waze"
+                        >
+                          <span>Waze</span>
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1217,16 +1240,16 @@ export const AgendaPage: React.FC = () => {
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-scale-up">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+            <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center">
-                  <CalendarDays className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
+                  <CalendarDays className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-sm text-slate-900">
+                  <h3 className="font-bold text-white text-base leading-tight">
                     Remarcar Instalação
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-xs text-blue-100 font-medium">
                     {reschedulingOrder.cliente?.nome} • {formatOrderCode(reschedulingOrder)}
                   </p>
                 </div>
@@ -1235,7 +1258,7 @@ export const AgendaPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setReschedulingOrder(null)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>

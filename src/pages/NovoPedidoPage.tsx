@@ -28,12 +28,15 @@ import {
   ClipboardCheck,
   Tag,
   AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Cliente, Produto, TipoPagamento } from '../types/database';
+import { Cliente, Produto, TipoPagamento, Pedido, ItemPedido } from '../types/database';
 import { formatCurrency, formatPhone, formatOrderCode, maskPhone } from '../lib/utils';
+import { maskCep, buscarCep, formatarEnderecoCompleto } from '../lib/cep';
 import { useToast } from '../components/Toast';
 import { ModalPortal } from '../components/ModalPortal';
+import { OrcamentoPdfModal } from '../components/OrcamentoPdfModal';
 
 interface CartItem {
   produto: Produto;
@@ -68,20 +71,33 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
   const [newClientNome, setNewClientNome] = useState('');
   const [newClientTelefone, setNewClientTelefone] = useState('');
   const [newClientEmail, setNewClientEmail] = useState('');
-  const [newClientEndereco, setNewClientEndereco] = useState('');
+
+  // Endereço Estruturado do Novo Cliente
+  const [newClientCep, setNewClientCep] = useState('');
+  const [newClientLogradouro, setNewClientLogradouro] = useState('');
+  const [newClientNumero, setNewClientNumero] = useState('');
+  const [newClientComplemento, setNewClientComplemento] = useState('');
+  const [newClientBairro, setNewClientBairro] = useState('');
+  const [newClientCidade, setNewClientCidade] = useState('Recife');
+  const [newClientEstado, setNewClientEstado] = useState('PE');
+  const [newClientPontoReferencia, setNewClientPontoReferencia] = useState('');
+  const [loadingClientCep, setLoadingClientCep] = useState(false);
+  const newClientNumeroRef = useRef<HTMLInputElement>(null);
+
   const [savingClient, setSavingClient] = useState(false);
 
   // Busca e filtro por categoria
   const [productSearch, setProductSearch] = useState('');
   const [selectedCategoria, setSelectedCategoria] = useState<string>('todos');
 
-  // Modal de sucesso pós-criação
-  const [createdOrderSummary, setCreatedOrderSummary] = useState<{
-    id: string;
-    numero_pedido?: number;
-    valor_total: number;
-    clienteNome: string;
-    itensCount: number;
+  // Modal de proposta comercial em PDF pós-criação
+  const [createdOrderPdfData, setCreatedOrderPdfData] = useState<{
+    pedido: Pedido;
+    cliente: Cliente;
+    itens: (ItemPedido & { produto?: Produto })[];
+    descontoPercentual: number;
+    observacoes: string;
+    formaPagamento: string;
   } | null>(null);
 
   const { showToast } = useToast();
@@ -202,6 +218,50 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
     return Math.max(0, subtotalItens - valorDesconto);
   }, [subtotalItens, valorDesconto]);
 
+  const handleNewClientCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const masked = maskCep(raw);
+    setNewClientCep(masked);
+
+    const clean = raw.replace(/\D/g, '');
+    if (clean.length === 8) {
+      setLoadingClientCep(true);
+      try {
+        const info = await buscarCep(clean);
+        if (info && !info.erro) {
+          if (info.logradouro) setNewClientLogradouro(info.logradouro);
+          if (info.bairro) setNewClientBairro(info.bairro);
+          if (info.localidade) setNewClientCidade(info.localidade);
+          if (info.uf) setNewClientEstado(info.uf);
+          showToast('info', 'Endereço localizado via CEP', `${info.logradouro || ''}, ${info.bairro || ''}`);
+          setTimeout(() => {
+            newClientNumeroRef.current?.focus();
+          }, 100);
+        } else {
+          showToast('warning', 'CEP não encontrado', 'Preencha o logradouro e bairro manualmente.');
+        }
+      } catch (err) {
+        console.error('Erro ao buscar CEP:', err);
+      } finally {
+        setLoadingClientCep(false);
+      }
+    }
+  };
+
+  const resetNewClientForm = () => {
+    setNewClientNome('');
+    setNewClientTelefone('');
+    setNewClientEmail('');
+    setNewClientCep('');
+    setNewClientLogradouro('');
+    setNewClientNumero('');
+    setNewClientComplemento('');
+    setNewClientBairro('');
+    setNewClientCidade('Recife');
+    setNewClientEstado('PE');
+    setNewClientPontoReferencia('');
+  };
+
   const handleCreateNewClient = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingClient(true);
@@ -215,13 +275,35 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
         throw new Error('Por favor, informe um endereço de e-mail válido.');
       }
 
+      const enderecoCompleto = formatarEnderecoCompleto({
+        cep: newClientCep.trim(),
+        logradouro: newClientLogradouro.trim(),
+        numero: newClientNumero.trim(),
+        complemento: newClientComplemento.trim(),
+        bairro: newClientBairro.trim(),
+        cidade: newClientCidade.trim(),
+        estado: newClientEstado.trim(),
+      });
+
+      if (!enderecoCompleto) {
+        throw new Error('Informe o logradouro e número da instalação.');
+      }
+
       const { data, error } = await supabase
         .from('clientes')
         .insert({
           nome: newClientNome.trim(),
           telefone: cleanPhone,
           email: newClientEmail.trim() || null,
-          endereco: newClientEndereco.trim(),
+          endereco: enderecoCompleto,
+          cep: newClientCep.trim() || null,
+          logradouro: newClientLogradouro.trim() || null,
+          numero: newClientNumero.trim() || null,
+          complemento: newClientComplemento.trim() || null,
+          bairro: newClientBairro.trim() || null,
+          cidade: newClientCidade.trim() || 'Recife',
+          estado: newClientEstado.trim() || 'PE',
+          ponto_referencia: newClientPontoReferencia.trim() || null,
         })
         .select()
         .single();
@@ -233,10 +315,7 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
       setSelectedClienteId(data.id);
       setIsClientDropdownOpen(false);
       setIsNewClientModalOpen(false);
-      setNewClientNome('');
-      setNewClientTelefone('');
-      setNewClientEmail('');
-      setNewClientEndereco('');
+      resetNewClientForm();
     } catch (err: any) {
       console.error('Erro ao salvar cliente:', err);
       showToast('error', 'Falha ao cadastrar cliente', err.message);
@@ -324,12 +403,46 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
         `Pedido ${formatOrderCode({ id: newOrderId, numero_pedido: numeroPedido })} gravado com valor de ${formatCurrency(valorTotalFinal)}.`
       );
 
-      setCreatedOrderSummary({
-        id: newOrderId,
-        numero_pedido: numeroPedido,
-        valor_total: valorTotalFinal,
-        clienteNome,
-        itensCount: cart.length,
+      const clienteObj = clientes.find((c) => c.id === selectedClienteId) || {
+        id: selectedClienteId,
+        nome: clienteNome,
+        telefone: '',
+        email: null,
+        endereco: '',
+        created_at: new Date().toISOString(),
+      };
+
+      const itensMapeados: (ItemPedido & { produto?: Produto })[] = cart.map((item, idx) => ({
+        id: `item-${idx}`,
+        pedido_id: newOrderId,
+        produto_id: item.produto.id,
+        quantidade: item.quantidade,
+        preco_unitario: item.produto.preco_unitario,
+        subtotal: item.quantidade * item.produto.preco_unitario,
+        created_at: new Date().toISOString(),
+        produto: item.produto,
+      }));
+
+      setCreatedOrderPdfData({
+        pedido: {
+          id: newOrderId,
+          numero_pedido: numeroPedido,
+          cliente_id: selectedClienteId,
+          tecnico_id: null,
+          status: 'orcamento',
+          data_instalacao: null,
+          valor_total: valorTotalFinal,
+          forma_pagamento: formaPagamento,
+          observacoes: finalObs || null,
+          concluido_em: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        cliente: clienteObj,
+        itens: itensMapeados,
+        descontoPercentual,
+        observacoes: finalObs,
+        formaPagamento,
       });
 
       setDetalhesMode('edicao');
@@ -1064,80 +1177,212 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
       {isNewClientModalOpen && (
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <UserPlus className="w-4 h-4 text-blue-600" />
-                  Cadastrar Novo Cliente
-                </h3>
+            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 max-h-[92vh] flex flex-col">
+              <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
+                    <UserPlus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-base leading-tight">Cadastrar Novo Cliente</h3>
+                    <p className="text-xs text-blue-100 font-medium">Vinculação imediata com endereço estruturado</p>
+                  </div>
+                </div>
                 <button
-                  onClick={() => setIsNewClientModalOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setIsNewClientModalOpen(false);
+                    resetNewClientForm();
+                  }}
+                  className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreateNewClient} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Nome Completo *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: Carlos Eduardo"
-                    value={newClientNome}
-                    onChange={(e) => setNewClientNome(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
+              <form onSubmit={handleCreateNewClient} className="p-6 space-y-4 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Nome Completo *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: Carlos Eduardo"
+                      value={newClientNome}
+                      onChange={(e) => setNewClientNome(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Telefone (WhatsApp) *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="(81) 99999-8888"
+                      value={newClientTelefone}
+                      onChange={(e) => setNewClientTelefone(maskPhone(e.target.value))}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      E-mail (Opcional)
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="cliente@exemplo.com"
+                      value={newClientEmail}
+                      onChange={(e) => setNewClientEmail(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Telefone (WhatsApp) *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="(81) 99999-8888"
-                    value={newClientTelefone}
-                    onChange={(e) => setNewClientTelefone(maskPhone(e.target.value))}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+                {/* Seção Endereço da Instalação */}
+                <div className="pt-3 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                      Endereço da Instalação
+                    </span>
+                    {loadingClientCep ? (
+                      <span className="text-[11px] text-blue-600 font-bold flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Buscando CEP...
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400">Autocompleta via CEP</span>
+                    )}
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    E-mail (Opcional)
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="cliente@exemplo.com"
-                    value={newClientEmail}
-                    onChange={(e) => setNewClientEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        CEP *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="00000-000"
+                        value={newClientCep}
+                        maxLength={9}
+                        onChange={handleNewClientCepChange}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Número *
+                      </label>
+                      <input
+                        ref={newClientNumeroRef}
+                        type="text"
+                        required
+                        placeholder="Ex: 120 ou S/N"
+                        value={newClientNumero}
+                        onChange={(e) => setNewClientNumero(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Endereço da Instalação *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Rua, Número, Bairro, Cidade"
-                    value={newClientEndereco}
-                    onChange={(e) => setNewClientEndereco(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Logradouro (Rua / Av) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: Rua das Flores"
+                      value={newClientLogradouro}
+                      onChange={(e) => setNewClientLogradouro(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Complemento
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Apto 302, Bloco B"
+                        value={newClientComplemento}
+                        onChange={(e) => setNewClientComplemento(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Bairro *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Boa Viagem"
+                        value={newClientBairro}
+                        onChange={(e) => setNewClientBairro(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-2">
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Cidade *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Recife"
+                        value={newClientCidade}
+                        onChange={(e) => setNewClientCidade(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        UF *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        maxLength={2}
+                        placeholder="PE"
+                        value={newClientEstado}
+                        onChange={(e) => setNewClientEstado(e.target.value.toUpperCase())}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 uppercase text-center font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Ponto de Referência <span className="text-slate-400 font-normal">(para o técnico)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Em frente à padaria / portão branco"
+                      value={newClientPontoReferencia}
+                      onChange={(e) => setNewClientPontoReferencia(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
                 </div>
 
                 <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => setIsNewClientModalOpen(false)}
+                    onClick={() => {
+                      setIsNewClientModalOpen(false);
+                      resetNewClientForm();
+                    }}
                     className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
                   >
                     Cancelar
@@ -1156,65 +1401,20 @@ export const NovoPedidoPage: React.FC<NovoPedidoPageProps> = ({ onNavigate }) =>
         </ModalPortal>
       )}
 
-      {/* Modal Sucesso com Resumo da Operação Atômica */}
-      {createdOrderSummary && (
-        <ModalPortal>
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 text-center p-6 space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-
-              <div>
-                <h3 className="font-extrabold text-lg text-slate-900">
-                  Orçamento Salvo com Sucesso!
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  O pedido foi gerado e registrado no sistema com sucesso.
-                </p>
-              </div>
-
-              <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl text-xs text-left space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Número do Pedido:</span>
-                  <span className="font-mono font-bold text-slate-900">{formatOrderCode(createdOrderSummary)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Cliente:</span>
-                  <span className="font-bold text-slate-900">{createdOrderSummary.clienteNome}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Itens Consolidados:</span>
-                  <span className="font-bold text-slate-900">{createdOrderSummary.itensCount} produtos</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-slate-200 font-extrabold text-sm">
-                  <span className="text-slate-900">Valor Total:</span>
-                  <span className="text-emerald-600">{formatCurrency(createdOrderSummary.valor_total)}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setCreatedOrderSummary(null)}
-                  className="flex-1 py-2.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-2xl text-xs font-bold cursor-pointer"
-                >
-                  Novo Orçamento
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCreatedOrderSummary(null);
-                    onNavigate('pedidos');
-                  }}
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold shadow-xs cursor-pointer"
-                >
-                  Gerenciar Pedido ➔
-                </button>
-              </div>
-            </div>
-          </div>
-        </ModalPortal>
+      {/* Modal de Proposta Comercial em PDF e Envio via WhatsApp */}
+      {createdOrderPdfData && (
+        <OrcamentoPdfModal
+          isOpen={Boolean(createdOrderPdfData)}
+          onClose={() => setCreatedOrderPdfData(null)}
+          pedido={createdOrderPdfData.pedido}
+          cliente={createdOrderPdfData.cliente}
+          itens={createdOrderPdfData.itens}
+          descontoPercentual={createdOrderPdfData.descontoPercentual}
+          observacoes={createdOrderPdfData.observacoes}
+          formaPagamento={createdOrderPdfData.formaPagamento}
+          secondaryActionLabel="Gerenciar Pedidos"
+          onSecondaryAction={() => onNavigate('pedidos')}
+        />
       )}
     </div>
   );

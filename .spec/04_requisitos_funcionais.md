@@ -60,6 +60,11 @@ O sistema SmartLar é composto por 6 módulos principais na interface de usuári
 - **RF-04.5 (Gravação Atômica):**
   - Botão "Criar Orçamento" dispara a RPC `criar_pedido` no Supabase.
   - Feedback imediato via toast e redirecionamento para a tela de Pedidos.
+- **RF-04.6 (Proposta Estilizada em PDF & Envio via WhatsApp):**
+  - Imediatamente após a gravação do orçamento, gera uma proposta comercial vetorial em PDF estilizada com identidade visual corporativa da SmartLar.
+  - Faz o upload automático do arquivo PDF para o Supabase Storage no bucket `orcamentos`.
+  - Disponibiliza botão direto de envio via WhatsApp (`wa.me`) com mensagem amigável, valores consolidados e link do PDF hospedado em nuvem.
+  - Fornece botões para visualização prévia, download direto do arquivo e cópia rápida do link.
 
 ---
 
@@ -79,6 +84,8 @@ O sistema SmartLar é composto por 6 módulos principais na interface de usuári
   - Ao clicar em "Agendar", abre modal exigindo a escolha do técnico e data/hora da instalação.
 - **RF-05.5 (Trilha de Auditoria):**
   - Botão para visualizar o histórico de mutações do pedido gerado por `historico_status`.
+- **RF-05.6 (Reemissão de Proposta Comercial e Envio via WhatsApp):**
+  - Botão dedicado nos cards (Kanban e Lista) e no modal de detalhes dos itens para gerar a proposta em PDF atualizada, reenviar via WhatsApp e baixar a qualquer momento.
 
 ---
 

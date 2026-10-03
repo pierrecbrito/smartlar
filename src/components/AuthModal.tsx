@@ -57,21 +57,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     <ModalPortal>
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-[#090d16] border border-slate-700/50 flex items-center justify-center p-1 overflow-hidden shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center p-1 overflow-hidden shrink-0">
               <img src="/logo.png" alt="SmartLar" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-base">
+              <h3 className="font-bold text-white text-base leading-tight">
                 {isSignUp ? 'Criar Usuário de Teste' : 'Acessar SmartLar'}
               </h3>
-              <p className="text-xs text-slate-500">Autenticação Supabase Auth</p>
+              <p className="text-xs text-blue-100 font-medium">Autenticação Supabase Auth</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

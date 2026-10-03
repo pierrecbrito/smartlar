@@ -230,9 +230,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     } else {
       servicos.forEach((s, idx) => {
         const dataFormatada = s.data_instalacao ? formatDateTime(s.data_instalacao) : 'Horário a definir';
+        const enderecoServico = s.endereco_instalacao || s.cliente?.endereco || 'Endereço a confirmar';
+        const refServico = s.ponto_referencia || s.cliente?.ponto_referencia;
+
         msg += `📍 *${idx + 1}. ${s.cliente?.nome || 'Cliente'}*\n`;
         msg += `⏰ ${dataFormatada}\n`;
-        msg += `🏠 ${s.cliente?.endereco || 'Endereço a confirmar'}\n`;
+        msg += `🏠 ${enderecoServico}\n`;
+        if (refServico) {
+          msg += `💡 Ref: ${refServico}\n`;
+        }
+        msg += `🗺️ GPS/Rota: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoServico)}\n`;
         msg += `📦 Itens: ${s.itens?.map((i) => `${i.quantidade}x ${i.produto?.nome}`).join(', ') || 'Equipamentos'}\n\n`;
       });
       msg += `Qualquer dúvida entre em contato com o Rafael. Bom trabalho!`;
@@ -433,7 +440,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </div>
               ) : (
                 proximasInstalacoes7Dias.slice(0, 5).map((p) => {
-                  const msgWhatsappCliente = `Olá ${p.cliente?.nome}! Aqui é o Rafael da SmartLar. Confirmando nossa visita técnica para instalação agendada para ${p.data_instalacao ? formatDateTime(p.data_instalacao) : 'esta semana'} no endereço: ${p.cliente?.endereco || ''}. Técnico responsável: ${p.tecnico?.nome || 'Nossa equipe'}. Qualquer dúvida estamos à disposição!`;
+                  const enderecoConfirmacao = p.endereco_instalacao || p.cliente?.endereco || '';
+                  const refConfirmacao = p.ponto_referencia || p.cliente?.ponto_referencia ? ` (Ref: ${p.ponto_referencia || p.cliente?.ponto_referencia})` : '';
+                  const msgWhatsappCliente = `Olá ${p.cliente?.nome}! Aqui é o Rafael da SmartLar. Confirmando nossa visita técnica para instalação agendada para ${p.data_instalacao ? formatDateTime(p.data_instalacao) : 'esta semana'} no endereço: ${enderecoConfirmacao}${refConfirmacao}. Técnico responsável: ${p.tecnico?.nome || 'Nossa equipe'}. Qualquer dúvida estamos à disposição!`;
                   const linkWhatsappCliente = `https://wa.me/55${(p.cliente?.telefone || '').replace(/\D/g, '')}?text=${encodeURIComponent(msgWhatsappCliente)}`;
 
                   return (

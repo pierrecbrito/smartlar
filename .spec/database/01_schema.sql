@@ -16,12 +16,21 @@ create type tipo_pagamento as enum
 
 -- ---------- TABELAS ----------
 create table clientes (
-  id          uuid primary key default gen_random_uuid(),
-  nome        text not null check (length(trim(nome)) > 0),
-  telefone    text not null check (length(regexp_replace(telefone, '\D', '', 'g')) between 10 and 13),
-  email       text check (email is null or email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
-  endereco    text not null check (length(trim(endereco)) > 0),  -- local da instalação
-  created_at  timestamptz not null default now()
+  id                uuid primary key default gen_random_uuid(),
+  nome              text not null check (length(trim(nome)) > 0),
+  telefone          text not null check (length(regexp_replace(telefone, '\D', '', 'g')) between 10 and 13),
+  email             text check (email is null or email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+  -- Endereço Estruturado
+  cep               varchar(9),
+  logradouro        text,
+  numero            text,
+  complemento       text,
+  bairro            text,
+  cidade            text default 'Recife',
+  estado            varchar(2) default 'PE',
+  ponto_referencia  text,
+  endereco          text not null check (length(trim(endereco)) > 0),  -- endereço completo formatado
+  created_at        timestamptz not null default now()
 );
 
 create table tecnicos (
@@ -45,18 +54,20 @@ create table produtos (
 create unique index produtos_nome_uk on produtos (lower(nome));
 
 create table pedidos (
-  id               uuid primary key default gen_random_uuid(),
-  numero_pedido    serial unique,
-  cliente_id       uuid not null references clientes(id) on delete restrict,
-  tecnico_id       uuid references tecnicos(id) on delete restrict,
-  status           status_pedido not null default 'orcamento',
-  data_instalacao  timestamptz,                 -- timestamptz (e não date) porque a automação 2 precisa do horário
-  valor_total      numeric(12,2) not null default 0 check (valor_total >= 0),  -- derivado: mantido por trigger
-  forma_pagamento  tipo_pagamento,
-  observacoes      text,
-  concluido_em     timestamptz,                 -- base do "faturado no mês" (created_at não serve pra isso)
-  created_at       timestamptz not null default now(),
-  updated_at       timestamptz not null default now(),
+  id                  uuid primary key default gen_random_uuid(),
+  numero_pedido       serial unique,
+  cliente_id          uuid not null references clientes(id) on delete restrict,
+  tecnico_id          uuid references tecnicos(id) on delete restrict,
+  status              status_pedido not null default 'orcamento',
+  data_instalacao     timestamptz,                 -- timestamptz (e não date) porque a automação precisa do horário
+  valor_total         numeric(12,2) not null default 0 check (valor_total >= 0),  -- derivado: mantido por trigger
+  forma_pagamento     tipo_pagamento,
+  observacoes         text,
+  endereco_instalacao text,                        -- snapshot do endereço da instalação no momento do pedido
+  ponto_referencia    text,                        -- orientações ou referência para a equipe técnica
+  concluido_em        timestamptz,                 -- base do "faturado no mês" (created_at não serve pra isso)
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now(),
   -- agendado / em andamento / concluído exigem técnico e data
   constraint pedido_agendamento_completo check (
     status not in ('agendado', 'em_andamento', 'concluido')
@@ -205,14 +216,15 @@ begin
   end if;
 
   -- 1. Pré-calcula o valor_total para que o webhook no INSERT já receba o valor real
-  select coalesce(sum((i->>'quantidade')::int * pr.preco), 0)
+  select coalesce(sum((i->>'quantidade')::int * pr.preco_unitario), 0)
     into v_total
     from jsonb_array_elements(p_itens) as i
     join produtos pr on pr.id = (i->>'produto_id')::uuid;
 
-  -- 2. Insere o pedido já com o valor_total preenchido
-  insert into pedidos (cliente_id, observacoes, valor_total)
-  values (p_cliente_id, nullif(trim(p_observacoes), ''), v_total)
+  -- 2. Insere o pedido já com o valor_total preenchido e congelando o endereço de instalação
+  insert into pedidos (cliente_id, observacoes, valor_total, endereco_instalacao, ponto_referencia)
+  select p_cliente_id, nullif(trim(p_observacoes), ''), v_total, c.endereco, c.ponto_referencia
+    from clientes c where c.id = p_cliente_id
   returning id into v_id;
 
   -- 3. Insere os itens_pedido (agrupando produtos repetidos se houver)
@@ -244,7 +256,7 @@ select
 from pedidos;
 
 -- Instalações (agendadas / em andamento) já "achatadas" com cliente e técnico.
--- Usada no dashboard, na agenda dos técnicos e na automação 2 do n8n.
+-- Usada no dashboard, na agenda dos técnicos e nas automações.
 create or replace view v_instalacoes with (security_invoker = true) as
 select
   p.id              as pedido_id,
@@ -253,9 +265,10 @@ select
   p.valor_total,
   c.nome            as cliente_nome,
   c.telefone        as cliente_telefone,
-  c.endereco        as endereco,
+  coalesce(p.endereco_instalacao, c.endereco) as endereco,
   t.id              as tecnico_id,
-  t.nome            as tecnico_nome
+  t.nome            as tecnico_nome,
+  coalesce(p.ponto_referencia, c.ponto_referencia) as ponto_referencia
 from pedidos p
 join clientes c      on c.id = p.cliente_id
 left join tecnicos t on t.id = p.tecnico_id

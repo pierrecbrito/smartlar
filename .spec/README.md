@@ -28,6 +28,8 @@ Este diretório contém a especificação técnica, os modelos de dados, os scri
 - [**01_schema.sql**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/database/01_schema.sql) — DDL de tabelas, triggers, views e RPC `criar_pedido`.
 - [**02_seed.sql**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/database/02_seed.sql) — Carga inicial com cenários realistas de teste.
 - [**03_rls.sql**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/database/03_rls.sql) — Políticas de Row Level Security por perfil.
+- [**04_storage_orcamentos.sql**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/database/04_storage_orcamentos.sql) — Configuração do bucket de Storage 'orcamentos' e políticas públicas de visualização.
+- [**05_enderecos_estruturados.sql**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/database/05_enderecos_estruturados.sql) — Migração para endereços estruturados (ViaCEP), snapshot no pedido e ponto de referência.
 
 ---
 

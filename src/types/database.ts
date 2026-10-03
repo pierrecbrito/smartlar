@@ -10,6 +10,14 @@ export interface Cliente {
   telefone: string;
   email: string | null;
   endereco: string;
+  cep?: string | null;
+  logradouro?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  ponto_referencia?: string | null;
   created_at: string;
 }
 
@@ -42,6 +50,8 @@ export interface Pedido {
   valor_total: number;
   forma_pagamento: TipoPagamento | null;
   observacoes: string | null;
+  endereco_instalacao?: string | null;
+  ponto_referencia?: string | null;
   concluido_em: string | null;
   created_at: string;
   updated_at: string;
@@ -85,6 +95,7 @@ export interface InstalacaoView {
   cliente_nome: string;
   cliente_telefone: string;
   endereco: string;
+  ponto_referencia?: string | null;
   tecnico_id: string | null;
   tecnico_nome: string | null;
 }
