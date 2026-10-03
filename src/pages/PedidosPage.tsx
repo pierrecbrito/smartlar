@@ -268,7 +268,7 @@ export const PedidosPage: React.FC = () => {
       showToast(
         'success',
         'Instalação agendada com sucesso!',
-        `Data e técnico registrados. A automação n8n do dia seguinte alertará a equipe.`
+        `Data e técnico registrados com sucesso no sistema.`
       );
 
       setSchedulingOrder(null);

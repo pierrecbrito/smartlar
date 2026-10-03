@@ -29,15 +29,9 @@ Desenvolvido para o teste técnico da **IAplicada** (Junior No-Code Dev), com fo
 │    - itens_bi / itens_ai: snapshot de preço e recálculo total│
 │  • RPC criar_pedido(): transação atômica pedido + itens      │
 │  • Views: v_dashboard_resumo, v_instalacoes (security invoker)│
+│  • RPC criar_pedido(): transação atômica pedido + itens      │
+│  • Views: v_dashboard_resumo, v_instalacoes (security invoker)│
 │  • Row Level Security (RLS) com políticas por perfil         │
-└──────────────────────────────┬───────────────────────────────┘
-                               │ Database Webhooks / Cron
-                               ▼
-┌──────────────────────────────────────────────────────────────┐
-│                     Automações (n8n)                         │
-│  • Workflow 1: Notificação de Novo Pedido (Webhook + Re-busca)│
-│  • Workflow 2: Alerta diário de instalações de amanhã (Cron) │
-│  • Workflow 3: Registro consolidado de vendas concluídas     │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -70,16 +64,22 @@ Desenvolvido para o teste técnico da **IAplicada** (Junior No-Code Dev), com fo
 
 ```
 smartlar/
-├── 01_schema.sql         # Definição de tabelas, enums, triggers, views e RPC
-├── 02_seed.sql           # Carga inicial com cenários de teste realistas
-├── 03_rls.sql            # Políticas de Row Level Security (ativar após login)
-├── DECISIONS.md          # Registro detalhado das decisões arquiteturais
-├── IA-LOG.md             # Registro de transparência do uso de Inteligência Artificial
-├── PLANO_PROJETO.md      # Cronograma tático, checklist e matriz de defesa
-├── n8n/                  # Workflows exportados em JSON para o n8n
-│   ├── workflow_1_novo_pedido.json
-│   ├── workflow_2_alerta_diario.json
-│   └── workflow_3_pedido_concluido.json
+├── .spec/                # Especificação funcional e técnica completa
+│   ├── 01_visao_geral.md
+│   ├── 02_regras_negocio.md
+│   ├── 03_modelo_dados.md
+│   ├── 04_requisitos_funcionais.md
+│   ├── 05_design_system_ux.md
+│   ├── 06_seguranca_auditoria.md
+│   └── 07_casos_de_teste.md
+├── database/             # Scripts SQL e migrações do banco
+│   ├── 01_schema.sql     # Definição de tabelas, enums, triggers, views e RPC
+│   ├── 02_seed.sql       # Carga inicial com cenários de teste realistas
+│   └── 03_rls.sql        # Políticas de Row Level Security (ativar após login)
+├── docs/                 # Documentos de apoio, decisões e histórico
+│   ├── DECISIONS.md      # Registro detalhado das decisões arquiteturais
+│   ├── IA-LOG.md         # Registro de transparência do uso de IA
+│   └── PLANO_PROJETO.md  # Cronograma tático e matriz de avaliação
 └── src/                  # Aplicação Frontend (React + Vite + TypeScript)
     ├── components/       # Componentes de UI modulares (Sidebar rail, Header, Toasts, Modais)
     ├── pages/            # 6 Telas: Dashboard, Produtos, Clientes, Novo Pedido, Pedidos, Agenda
@@ -145,28 +145,23 @@ update pedidos set status = 'agendado' where status = 'aprovado';
 
 ---
 
-## 📦 Automações no n8n
+## 📋 Especificação do Projeto (`.spec/`)
 
-Os arquivos de workflow estão prontos na pasta `/n8n`:
-
-1. **Automação 1 — Notificação de Novo Pedido (`workflow_1_novo_pedido.json`):**
-   - Gatilho: Database Webhook no Supabase disparado no `INSERT` da tabela `pedidos`.
-   - Node HTTP: Re-busca os dados consolidados (`id`, `valor_total`, `cliente(nome, telefone)`).
-   - Envio de notificação imediata por e-mail e registro em planilha.
-
-2. **Automação 2 — Alerta Diário de Instalações (`workflow_2_alerta_diario.json`):**
-   - Gatilho: Schedule diário às 07:00 (Timezone `America/Sao_Paulo`).
-   - Node HTTP: Consulta na view `v_instalacoes` filtrando agendamentos de amanhã.
-   - Envio de briefing detalhado aos técnicos com rotas e orientações.
-
-3. **Automação 3 (Bônus) — Registro de Pedidos Concluídos (`workflow_3_pedido_concluido.json`):**
-   - Gatilho: Database Webhook disparado no `UPDATE` de `pedidos` quando `status = 'concluido'`.
-   - Atualiza planilha financeira e confirma faturamento do mês.
+A especificação completa do sistema encontra-se catalogada na pasta [`.spec/`](.spec/README.md):
+- [01_visao_geral.md](.spec/01_visao_geral.md) — Visão geral, objetivos, personas e stack.
+- [02_regras_negocio.md](.spec/02_regras_negocio.md) — Máquina de estados, congelamento de preço e RPC atômica.
+- [03_modelo_dados.md](.spec/03_modelo_dados.md) — Dicionário de dados, tabelas, views e triggers.
+- [04_requisitos_funcionais.md](.spec/04_requisitos_funcionais.md) — Requisitos funcionais das 6 telas da aplicação.
+- [05_design_system_ux.md](.spec/05_design_system_ux.md) — Design system Tablet POS, paleta e componentes.
+- [06_seguranca_auditoria.md](.spec/06_seguranca_auditoria.md) — RLS, auditoria e segurança.
+- [07_casos_de_teste.md](.spec/07_casos_de_teste.md) — Roteiro de testes de conformidade.
 
 ---
 
-## 📄 Documentação & Governança
+## 📄 Histórico de Governança & Decisões (`docs/`)
 
-- [DECISIONS.md](DECISIONS.md) — Racional técnico e justificativa de arquitetura.
-- [IA-LOG.md](IA-LOG.md) — Relatório de transparência do uso de Inteligência Artificial.
-- [PLANO_PROJETO.md](PLANO_PROJETO.md) — Planejamento estratégico e matriz de avaliação.
+- [DECISIONS.md](docs/DECISIONS.md) — Racional técnico e justificativa de arquitetura.
+- [IA-LOG.md](docs/IA-LOG.md) — Relatório de transparência do uso de Inteligência Artificial.
+- [PLANO_PROJETO.md](docs/PLANO_PROJETO.md) — Planejamento estratégico e matriz de avaliação.
+- [teste-pratico-dev-nocode-junior.pdf](docs/teste-pratico-dev-nocode-junior.pdf) — Documento de especificação original.
+
