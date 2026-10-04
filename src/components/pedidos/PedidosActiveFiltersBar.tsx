@@ -79,8 +79,8 @@ export const PedidosActiveFiltersBar: React.FC<PedidosActiveFiltersBarProps> = (
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50/90 border border-slate-200/80 rounded-2xl px-3.5 py-2.5 shadow-2xs">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/90 border border-slate-200/80 rounded-2xl p-2.5 sm:px-3.5 sm:py-2.5 shadow-2xs">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
         <div className="flex items-center gap-1.5 text-xs font-bold text-blue-700 mr-1">
           <Filter className="w-3.5 h-3.5" />
           <span>Filtros ativos ({activeCount}):</span>
@@ -204,7 +204,7 @@ export const PedidosActiveFiltersBar: React.FC<PedidosActiveFiltersBarProps> = (
       </div>
 
       {/* Resumo Métrico */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 ml-auto">
+      <div className="flex items-center justify-between sm:justify-end gap-2 text-xs font-semibold text-slate-600 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
         <span>
           Mostrando <span className="font-extrabold text-slate-900">{filteredCount}</span> de{' '}
           {totalCount} {totalCount === 1 ? 'pedido' : 'pedidos'}

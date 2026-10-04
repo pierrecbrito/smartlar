@@ -43,11 +43,11 @@ export const PedidosPage: React.FC = () => {
             *,
             cliente:clientes(id, nome, telefone, endereco),
             tecnico:tecnicos(id, nome, telefone, especialidade),
-            itens:pedido_itens(
+            itens:itens_pedido(
               id,
               quantidade,
               preco_unitario,
-              total,
+              subtotal,
               produto:produtos(id, nome, categoria)
             )
           `)

@@ -79,28 +79,30 @@ export const PedidosFilterDrawer: React.FC<PedidosFilterDrawerProps> = ({
   });
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-lg space-y-6 animate-slide-up">
+    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-lg space-y-5 sm:space-y-6 animate-slide-up">
       {/* Top Header do Painel */}
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="p-1.5 bg-blue-50 text-blue-600 rounded-xl">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="p-1.5 bg-blue-50 text-blue-600 rounded-xl shrink-0">
             <DollarSign className="w-4 h-4" />
           </span>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">Filtros Avançados do Kanban</h3>
-            <p className="text-xs text-slate-500">
-              Filtre pedidos por cliente, faixa de valores, técnico e datas
+          <div className="min-w-0">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+              Filtros Avançados do Kanban
+            </h3>
+            <p className="text-[11px] sm:text-xs text-slate-500 truncate">
+              Clientes, faixa de valores, técnicos e datas
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
             type="button"
             onClick={onResetFilters}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Redefinir</span>
+            <span className="hidden xs:inline">Redefinir</span>
           </button>
           <button
             type="button"
@@ -342,11 +344,11 @@ export const PedidosFilterDrawer: React.FC<PedidosFilterDrawerProps> = ({
       </div>
 
       {/* Footer com Botão de Conclusão */}
-      <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
         <button
           type="button"
           onClick={onClose}
-          className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+          className="w-full sm:w-auto px-5 py-2.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center justify-center gap-1.5"
         >
           <Check className="w-4 h-4" />
           <span>Aplicar e Fechar</span>
