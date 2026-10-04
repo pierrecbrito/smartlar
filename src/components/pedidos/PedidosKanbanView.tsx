@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Lock,
   FileText,
+  Filter,
 } from 'lucide-react';
 import { Pedido, StatusPedido } from '../../types/database';
 import {
@@ -31,6 +32,8 @@ interface PedidosKanbanViewProps {
   onOpenDetails: (pedido: Pedido) => void;
   onGeneratePdf: (pedido: Pedido) => void;
   showToast: (type: 'success' | 'error' | 'info' | 'warning', title: string, message?: string) => void;
+  hasActiveFilters?: boolean;
+  onResetFilters?: () => void;
 }
 
 const KANBAN_COLUMNS: StatusPedido[] = [
@@ -50,6 +53,8 @@ export const PedidosKanbanView: React.FC<PedidosKanbanViewProps> = ({
   onOpenDetails,
   onGeneratePdf,
   showToast,
+  hasActiveFilters = false,
+  onResetFilters,
 }) => {
   const [draggedOrderId, setDraggedOrderId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<StatusPedido | null>(null);
@@ -119,11 +124,35 @@ export const PedidosKanbanView: React.FC<PedidosKanbanViewProps> = ({
   }
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 pt-1 items-start min-h-[580px] scrollbar-thin">
-      {KANBAN_COLUMNS.map((colStatus) => {
-        const colConfig = STATUS_CONFIG[colStatus];
-        const colPedidos = pedidos.filter((p) => p.status === colStatus);
-        const colTotal = colPedidos.reduce((acc, p) => acc + (p.valor_total || 0), 0);
+    <div className="space-y-4">
+      {hasActiveFilters && pedidos.length === 0 && (
+        <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 shadow-2xs animate-fade-in">
+          <div className="flex items-center gap-3">
+            <span className="p-2 bg-amber-100 text-amber-700 rounded-xl">
+              <Filter className="w-4 h-4" />
+            </span>
+            <div>
+              <p className="text-xs font-bold">Nenhum pedido encontrado para os filtros selecionados.</p>
+              <p className="text-[11px] text-amber-700">Tente ajustar a faixa de valores, selecionar outro cliente ou limpar os filtros para visualizar os pedidos.</p>
+            </div>
+          </div>
+          {onResetFilters && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer self-start sm:self-auto shrink-0"
+            >
+              Limpar Filtros
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="flex gap-4 overflow-x-auto pb-4 pt-1 items-start min-h-[580px] scrollbar-thin">
+        {KANBAN_COLUMNS.map((colStatus) => {
+          const colConfig = STATUS_CONFIG[colStatus];
+          const colPedidos = pedidos.filter((p) => p.status === colStatus);
+          const colTotal = colPedidos.reduce((acc, p) => acc + (p.valor_total || 0), 0);
 
         const isDragging = draggedOrder !== null;
         const isCurrentCol = draggedOrder?.status === colStatus;
@@ -224,9 +253,13 @@ export const PedidosKanbanView: React.FC<PedidosKanbanViewProps> = ({
             <div className="p-2.5 space-y-3 overflow-y-auto flex-1 min-h-[140px]">
               {colPedidos.length === 0 ? (
                 <div className="h-32 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-center p-3 text-slate-400">
-                  <span className="text-xs">Nenhum pedido</span>
+                  <span className="text-xs font-medium">Nenhum pedido</span>
                   <span className="text-[10px] text-slate-400 mt-0.5">
-                    {isAllowedTarget ? 'Solte o card aqui' : 'Vazio'}
+                    {isAllowedTarget
+                      ? 'Solte o card aqui'
+                      : hasActiveFilters
+                      ? 'Nenhum resultado no filtro'
+                      : 'Coluna vazia'}
                   </span>
                 </div>
               ) : (
@@ -420,6 +453,7 @@ export const PedidosKanbanView: React.FC<PedidosKanbanViewProps> = ({
           </div>
         );
       })}
+      </div>
     </div>
   );
 };
