@@ -1,51 +1,51 @@
-# 🏠 SmartLar — Sistema de Gestão de Vendas e Instalações
+# SmartLar — Sistema de Gestão de Vendas e Instalações
 
 Sistema completo para gestão de orçamentos, vendas e agendamento de instalações de automação residencial e segurança eletrônica.
 
-Desenvolvido para o teste técnico da **IAplicada** (Junior No-Code Dev), com foco em **arquitetura resiliente**: regras de negócio e integridade garantidas no banco de dados (PostgreSQL 16 / Supabase), frontend com design de ponta inspirado em tablet POS (React + TypeScript + Tailwind CSS), e automações orientadas a eventos (n8n).
+Desenvolvido para o teste técnico da **IAplicada** (Junior No-Code Dev), com foco em **arquitetura resiliente**: regras de negócio e integridade garantidas no banco de dados (PostgreSQL 16 / Supabase), frontend com design de ponta inspirado em tablet POS (React + TypeScript + Tailwind CSS) estruturado com princípios SOLID, e automações orientadas a eventos (n8n).
 
 ---
 
-## 🚀 Arquitetura & Stack Tecnológica
+## Arquitetura & Stack Tecnológica
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                   Frontend Tablet POS (SPA)                  │
 │     Vite + React + TypeScript + Tailwind CSS + Lucide Icons   │
 │                 @supabase/supabase-js Client                 │
-│   • Slim dark icon rail com notch visual ativo               │
-│   • Painel lateral fixo (Order Details Drawer) com stepper   │
-│   • Filtros de categoria e status em pílulas (Pills)         │
+│   - Slim dark icon rail com notch visual ativo               │
+│   - Painel lateral fixo (Order Details Drawer) com stepper   │
+│   - Filtros de categoria e status em pílulas (Pills)         │
+│   - Arquitetura modular: páginas orquestradoras (< 200 linhas)│
+│     e componentes especialistas desacoplados (SOLID)         │
 └──────────────────────────────┬───────────────────────────────┘
                                │
                                ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                    Supabase / PostgreSQL                     │
-│  • Constraints de Domínio & Validação de Telefone/Email       │
-│  • Triggers PL/pgSQL:                                        │
-│    - pedidos_bi: nascimento obrigatório como 'orcamento'     │
-│    - pedidos_bu: máquina de estados estrita (não volta/pula) │
-│    - pedidos_ai: auditoria automática em historico_status    │
-│    - itens_bi / itens_ai: snapshot de preço e recálculo total│
-│  • RPC criar_pedido(): transação atômica pedido + itens      │
-│  • Views: v_dashboard_resumo, v_instalacoes (security invoker)│
-│  • RPC criar_pedido(): transação atômica pedido + itens      │
-│  • Views: v_dashboard_resumo, v_instalacoes (security invoker)│
-│  • Row Level Security (RLS) com políticas por perfil         │
+│  - Constraints de Domínio & Validação de Telefone/Email       │
+│  - Triggers PL/pgSQL:                                        │
+│    * pedidos_bi: nascimento obrigatório como 'orcamento'     │
+│    * pedidos_bu: máquina de estados estrita (não volta/pula) │
+│    * pedidos_ai: auditoria automática em historico_status    │
+│    * itens_bi / itens_ai: snapshot de preço e recálculo total│
+│  - RPC criar_pedido(): transação atômica pedido + itens      │
+│  - Views: v_dashboard_resumo, v_instalacoes (security invoker)│
+│  - Row Level Security (RLS) com políticas por perfil         │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📋 Regras de Negócio Implementadas no Banco
+## Regras de Negócio Implementadas no Banco
 
 1. **Ciclo de Vida do Pedido (Máquina de Estados):**
    - Todo pedido nasce impreterivelmente como `orcamento`.
    - Transições permitidas:
-     - `orcamento` ➔ `aprovado` ou `cancelado`
-     - `aprovado` ➔ `agendado` (exige obrigatoriamente `tecnico_id` e `data_instalacao`) ou `cancelado`
-     - `agendado` ➔ `em_andamento`
-     - `em_andamento` ➔ `concluido` (marca automaticamente `concluido_em = now()`)
+     - `orcamento` -> `aprovado` ou `cancelado`
+     - `aprovado` -> `agendado` (exige obrigatoriamente `tecnico_id` e `data_instalacao`) ou `cancelado`
+     - `agendado` -> `em_andamento`
+     - `em_andamento` -> `concluido` (marca automaticamente `concluido_em = now()`)
    - Qualquer tentativa de pular etapas ou regredir status é rejeitada pelo Postgres com exceção explícita (`400 Bad Request`).
 
 2. **Snapshot de Preço e Subtotal Imutável:**
@@ -60,7 +60,9 @@ Desenvolvido para o teste técnico da **IAplicada** (Junior No-Code Dev), com fo
 
 ---
 
-## 🛠️ Estrutura do Projeto
+## Estrutura do Projeto
+
+O código do frontend segue estritamente os princípios SOLID (especialmente Responsabilidade Única - SRP), com páginas atuando apenas como orquestradoras e componentes visuais e modais isolados em subpastas dedicadas:
 
 ```
 smartlar/
@@ -86,20 +88,27 @@ smartlar/
 │           ├── 02_alerta_diario_instalacoes.json # Automação 2: Cron diário -> Supabase -> WhatsApp (CallMeBot)
 │           └── 03_pedido_concluido.json # Automação 3 (Bônus): Webhook Update -> Faturamento no Google Sheets
 └── src/                  # Aplicação Frontend (React + Vite + TypeScript)
-    ├── components/       # Componentes de UI modulares
-    │   ├── agenda/       # Subcomponentes da Agenda (Toolbar, Views, Modais)
-    │   ├── novo-pedido/  # Subcomponentes do PDV (Catálogo, Carrinho, Modais)
+    ├── components/       # Componentes de UI modulares desacoplados
+    │   ├── agenda/       # Agenda (Toolbar, Views Diária/Semanal/Mensal, Modais)
+    │   ├── clientes/     # Clientes (ClientesList Mobile/Desktop, Modais de Pedidos e Novo Cliente)
+    │   ├── dashboard/    # Dashboard (Métricas, Agenda, Pendentes de Aprovação, Técnicos)
+    │   ├── novo-pedido/  # PDV (Catálogo, Carrinho Drawer, Modal de Sucesso)
+    │   ├── pedidos/      # Pedidos (Filtros, Kanban D&D, Lista, Modais de Agendamento/Histórico/Itens)
+    │   ├── produtos/     # Produtos (Filtros, Tabela/Cards, Modais de Preço e Novo Equipamento)
     │   ├── ErrorBoundary.tsx # Barreira global de erros de renderização
-    │   └── Skeleton.tsx  # Placeholders de carregamento progressivo
+    │   ├── ModalPortal.tsx   # Portal React para renderização de modais no body
+    │   ├── OrcamentoPdfModal.tsx # Geração de proposta comercial em PDF e envio WhatsApp
+    │   ├── Skeleton.tsx  # Placeholders de carregamento progressivo
+    │   └── Toast.tsx     # Contexto e renderizador de notificações toast
     ├── hooks/            # Custom Hooks desacoplados (useAgenda, useNovoPedido)
-    ├── pages/            # 6 Telas: Dashboard, Produtos, Clientes, Novo Pedido, Pedidos, Agenda
-    ├── lib/              # Cliente Supabase (env-only), utilitários e ViaCEP
-    └── types/            # Tipagens TypeScript derivadas do schema
+    ├── pages/            # 6 Páginas orquestradoras enxutas (< 200 linhas cada)
+    ├── lib/              # Cliente Supabase, utilitários, formatações e integração ViaCEP
+    └── types/            # Tipagens TypeScript derivadas do schema do banco
 ```
 
 ---
 
-## 🧪 Roteiro de Validação e Testes no Banco
+## Roteiro de Validação e Testes no Banco
 
 O banco de dados de produção está configurado no Supabase:
 - **URL:** `https://eyjfofrwjixirbuvvlmk.supabase.co`
@@ -133,7 +142,7 @@ update pedidos set status = 'agendado' where status = 'aprovado';
 
 ---
 
-## ⚡ Como Rodar o Frontend Localmente
+## Como Rodar o Frontend Localmente
 
 1. **Instalar Dependências:**
    ```bash
@@ -155,7 +164,7 @@ update pedidos set status = 'agendado' where status = 'aprovado';
 
 ---
 
-## 📋 Especificação do Projeto (`.spec/`)
+## Especificação do Projeto (`.spec/`)
 
 A especificação completa do sistema encontra-se catalogada na pasta [`.spec/`](.spec/README.md):
 - [01_visao_geral.md](.spec/01_visao_geral.md) — Visão geral, objetivos, personas e stack.
@@ -168,10 +177,9 @@ A especificação completa do sistema encontra-se catalogada na pasta [`.spec/`]
 
 ---
 
-## 📄 Histórico de Governança & Decisões (`.spec/docs/`)
+## Histórico de Governança & Decisões (`.spec/docs/`)
 
 - [DECISIONS.md](.spec/docs/DECISIONS.md) — Racional técnico e justificativa de arquitetura.
 - [IA-LOG.md](.spec/docs/IA-LOG.md) — Relatório de transparência do uso de Inteligência Artificial.
 - [PLANO_PROJETO.md](.spec/docs/PLANO_PROJETO.md) — Planejamento estratégico e matriz de avaliação.
 - [teste-pratico-dev-nocode-junior.pdf](.spec/docs/teste-pratico-dev-nocode-junior.pdf) — Documento de especificação original.
-
