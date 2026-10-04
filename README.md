@@ -80,11 +80,20 @@ smartlar/
 │   └── docs/             # Documentos de apoio, decisões e histórico
 │       ├── DECISIONS.md  # Registro detalhado das decisões arquiteturais
 │       ├── IA-LOG.md     # Registro de transparência do uso de IA
-│       └── PLANO_PROJETO.md # Cronograma tático e matriz de avaliação
+│       ├── PLANO_PROJETO.md # Cronograma tático e matriz de avaliação
+│       └── n8n/          # Workflows exportados do n8n para automações externas
+│           ├── 01_novo_pedido.json # Automação 1: Webhook Supabase -> Re-Fetch View -> Google Sheets
+│           ├── 02_alerta_diario_instalacoes.json # Automação 2: Cron diário -> Supabase -> WhatsApp (CallMeBot)
+│           └── 03_pedido_concluido.json # Automação 3 (Bônus): Webhook Update -> Faturamento no Google Sheets
 └── src/                  # Aplicação Frontend (React + Vite + TypeScript)
-    ├── components/       # Componentes de UI modulares (Sidebar rail, Header, Toasts, Modais)
+    ├── components/       # Componentes de UI modulares
+    │   ├── agenda/       # Subcomponentes da Agenda (Toolbar, Views, Modais)
+    │   ├── novo-pedido/  # Subcomponentes do PDV (Catálogo, Carrinho, Modais)
+    │   ├── ErrorBoundary.tsx # Barreira global de erros de renderização
+    │   └── Skeleton.tsx  # Placeholders de carregamento progressivo
+    ├── hooks/            # Custom Hooks desacoplados (useAgenda, useNovoPedido)
     ├── pages/            # 6 Telas: Dashboard, Produtos, Clientes, Novo Pedido, Pedidos, Agenda
-    ├── lib/              # Cliente Supabase, utilitários de formatação e moeda
+    ├── lib/              # Cliente Supabase (env-only), utilitários e ViaCEP
     └── types/            # Tipagens TypeScript derivadas do schema
 ```
 

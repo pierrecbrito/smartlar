@@ -1,44 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Prioriza credenciais do .env ou salvas no localStorage para conveniência
-const defaultUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const defaultKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Credenciais vêm exclusivamente das variáveis de ambiente (.env).
+// Nenhuma chave é lida/gravada em localStorage.
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-export const getSupabaseConfig = () => {
-  const localUrl = localStorage.getItem('smartlar_supabase_url');
-  const localKey = localStorage.getItem('smartlar_supabase_anon_key');
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl && supabaseUrl.startsWith('https://') && supabaseAnonKey && supabaseAnonKey.length > 20
+);
 
-  const supabaseUrl = localUrl || defaultUrl;
-  const supabaseAnonKey = localKey || defaultKey;
-
-  const isConfigured = Boolean(
-    supabaseUrl &&
-    supabaseUrl.startsWith('https://') &&
-    supabaseAnonKey &&
-    supabaseAnonKey.length > 20
+if (!isSupabaseConfigured) {
+  console.error(
+    'Supabase não configurado: defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env (veja .env.example).'
   );
+}
 
-  return { supabaseUrl, supabaseAnonKey, isConfigured };
-};
-
-export const setSupabaseConfig = (url: string, key: string) => {
-  localStorage.setItem('smartlar_supabase_url', url.trim());
-  localStorage.setItem('smartlar_supabase_anon_key', key.trim());
-  window.location.reload();
-};
-
-export const clearSupabaseConfig = () => {
-  localStorage.removeItem('smartlar_supabase_url');
-  localStorage.removeItem('smartlar_supabase_anon_key');
-  window.location.reload();
-};
-
-const config = getSupabaseConfig();
-
-// Instância segura do cliente Supabase (usando fallback seguro caso ainda não configurado)
+// Fallback seguro apenas para evitar crash na inicialização quando o .env está ausente.
 export const supabase = createClient(
-  config.supabaseUrl || 'https://placeholder-url.supabase.co',
-  config.supabaseAnonKey || 'placeholder-key',
+  supabaseUrl || 'https://placeholder-url.supabase.co',
+  supabaseAnonKey || 'placeholder-key',
   {
     auth: {
       persistSession: true,

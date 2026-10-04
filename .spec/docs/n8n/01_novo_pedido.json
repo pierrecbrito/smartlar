@@ -1,0 +1,224 @@
+{
+  "name": "SmartLar - 01 Novo Pedido",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "v_agenda_pedidos",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $('Webhook Supabase (Insert Pedido)').item.json.body.record.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "059a96aa-5f6c-48c4-9c0e-c790c2a689de",
+      "name": "Busca pedido",
+      "credentials": {
+        "supabaseApi": {
+          "id": "HHEF5CwhjTTZpiV0",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1cEgaMq0dEXWptclK8IrLgNdO9DvBYAcgnCvaaFufEJY",
+          "mode": "list",
+          "cachedResultName": "Orçamentos - SmartLar",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEgaMq0dEXWptclK8IrLgNdO9DvBYAcgnCvaaFufEJY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cEgaMq0dEXWptclK8IrLgNdO9DvBYAcgnCvaaFufEJY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Orçamento": "={{ $json.numero_pedido }}",
+            "Nome do cliente": "={{ $json.cliente.nome }}",
+            "Data": "={{ $json.created_at.toDateTime().setZone('America/Sao_Paulo').format('dd/MM/yyyy HH:mm') }}h",
+            "Valor total": "={{ $json.valor_total }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Orçamento",
+              "displayName": "Orçamento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nome do cliente",
+              "displayName": "Nome do cliente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Valor total",
+              "displayName": "Valor total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Data",
+              "displayName": "Data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        0
+      ],
+      "id": "ca55925d-6ae9-444f-8d8c-1791db9b2ec4",
+      "name": "Adicionar linha",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BOrX5aehwCYjwNo7",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "smartlar-pedido-criado",
+        "options": {}
+      },
+      "name": "Webhook Supabase (Insert Pedido)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7f2754a5-8a7f-4670-bd59-f8bb8e8cf3c0",
+      "webhookId": "58e3b344-4cfd-48cb-aa09-4951931c7553"
+    }
+  ],
+  "pinData": {
+    "Webhook Supabase (Insert Pedido)": [
+      {
+        "json": {
+          "headers": {
+            "host": "pierrecbrito.app.n8n.cloud",
+            "user-agent": "pg_net/0.20.4",
+            "content-length": "509",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "2600:1f14:90b:6002:d4b1:d9f3:e047:7209",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "a44822d7bc030d87-PDX",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "2600:1f14:90b:6002:d4b1:d9f3:e047:7209, 172.68.175.92",
+            "x-forwarded-host": "pierrecbrito.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-swc-13-6868f6d46c-6xbdt",
+            "x-is-trusted": "yes",
+            "x-real-ip": "2600:1f14:90b:6002:d4b1:d9f3:e047:7209"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "type": "INSERT",
+            "table": "pedidos",
+            "record": {
+              "id": "80160b31-b4a2-4965-9cb4-2bf387e6f084",
+              "status": "orcamento",
+              "cliente_id": "21b6a9a3-800e-4d5e-8402-54921c14382a",
+              "created_at": "2026-10-03T01:22:29.411552+00:00",
+              "tecnico_id": null,
+              "updated_at": "2026-10-03T01:22:29.411552+00:00",
+              "observacoes": "[Desconto Aplicado: 10% (-R$ 232,00)] 1 no corredor e 3 na sala",
+              "valor_total": 0,
+              "concluido_em": null,
+              "data_instalacao": null,
+              "forma_pagamento": null
+            },
+            "schema": "public",
+            "old_record": null
+          },
+          "webhookUrl": "https://pierrecbrito.app.n8n.cloud/webhook/smartlar-novo-pedido",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Busca pedido": {
+      "main": [
+        [
+          {
+            "node": "Adicionar linha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Supabase (Insert Pedido)": {
+      "main": [
+        [
+          {
+            "node": "Busca pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "aeca4c8f-6eb3-4dd1-b4c0-273f05b5f9f9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ac9d7884e5c894131a177337639d8473d3bda1505ca4e951d24ea5cfea1b221d"
+  },
+  "nodeGroups": [],
+  "id": "3Mp4p4igr7Xaio8G",
+  "tags": []
+}

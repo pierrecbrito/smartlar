@@ -139,3 +139,8 @@ Consolidação detalhada da agenda de instalações unindo:
 - Dados do cliente (`nome`, `telefone`, `endereco`, `bairro`, `cidade`).
 - Dados do técnico (`nome`, `especialidade`, `telefone`).
 - Quantidade total de itens e resumo dos produtos.
+
+### 3.3 `v_agenda_pedidos` (`security_invoker = true`)
+Visão completa de pedidos com dados do cliente e do técnico encapsulados como objetos JSON (`cliente: { id, nome, telefone, email, endereco }` e `tecnico: { ... }`).
+- **Finalidade:** Utilizada diretamente pelo nó nativo do Supabase no **n8n (Workflow 01 - Novo Pedido)** para o padrão *re-fetch atômico* pós-insert via webhook, garantindo que o `valor_total` oficial calculado pelas triggers e o nome do cliente cheguem estruturados sem necessidade de múltiplos nós de transformação.
+

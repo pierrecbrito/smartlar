@@ -40,3 +40,8 @@ Este diretório contém a especificação técnica, os modelos de dados, os scri
 - [**IA-LOG.md**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/docs/IA-LOG.md) — Relatório de transparência do uso de Inteligência Artificial.
 - [**PLANO_PROJETO.md**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/docs/PLANO_PROJETO.md) — Planejamento estratégico, checklist de riscos e cronograma.
 - [**teste-pratico-dev-nocode-junior.pdf**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/docs/teste-pratico-dev-nocode-junior.pdf) — Documento de especificação original.
+- [**n8n/**](file:///c:/Users/Pierre%20Brito/Documents/smartlar/.spec/docs/n8n/01_novo_pedido.json) — Arquivos JSON dos fluxos e automações do n8n:
+  - `01_novo_pedido.json`: Webhook Supabase ➔ Re-Fetch `v_agenda_pedidos` ➔ Google Sheets.
+  - `02_alerta_diario_instalacoes.json`: Schedule diário 18h ➔ Consulta Supabase (Luxon Fuso BR) ➔ IF com tratamento de agenda vazia ➔ Notificação WhatsApp (CallMeBot).
+  - `03_pedido_concluido.json`: Webhook Supabase (Update) ➔ Filtro `concluido` ➔ Registro Financeiro no Google Sheets (com mapeamento de forma de pagamento).
+

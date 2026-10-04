@@ -14,6 +14,7 @@ import { supabase } from './lib/supabase';
 import { ShieldCheck, Loader2 } from 'lucide-react';
 import { AuthModal } from './components/AuthModal';
 import { BottomNav } from './components/BottomNav';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export const AppContent: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
@@ -85,12 +86,14 @@ export const AppContent: React.FC = () => {
 
         {/* Main View Container */}
         <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-28 sm:pb-32 lg:pb-10 max-w-[1600px] w-full mx-auto">
-          {currentTab === 'dashboard' && <DashboardPage onNavigate={setCurrentTab} />}
-          {currentTab === 'novo-pedido' && <NovoPedidoPage onNavigate={setCurrentTab} />}
-          {currentTab === 'pedidos' && <PedidosPage />}
-          {currentTab === 'agenda' && <AgendaPage />}
-          {currentTab === 'clientes' && <ClientesPage />}
-          {currentTab === 'produtos' && <ProdutosPage />}
+          <ErrorBoundary resetKey={currentTab}>
+            {currentTab === 'dashboard' && <DashboardPage onNavigate={setCurrentTab} />}
+            {currentTab === 'novo-pedido' && <NovoPedidoPage onNavigate={setCurrentTab} />}
+            {currentTab === 'pedidos' && <PedidosPage />}
+            {currentTab === 'agenda' && <AgendaPage />}
+            {currentTab === 'clientes' && <ClientesPage />}
+            {currentTab === 'produtos' && <ProdutosPage />}
+          </ErrorBoundary>
         </main>
       </div>
 
@@ -105,9 +108,11 @@ export const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <ToastProvider>
-      <AppContent />
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
+    </ErrorBoundary>
   );
 };
 export default App;

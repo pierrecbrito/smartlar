@@ -22,6 +22,7 @@ import { Cliente, Pedido } from '../types/database';
 import { formatPhone, formatDateTime, formatCurrency, formatOrderCode, maskPhone, STATUS_CONFIG } from '../lib/utils';
 import { maskCep, buscarCep, formatarEnderecoCompleto, formatarEnderecoListagem } from '../lib/cep';
 import { useToast } from '../components/Toast';
+import { ListSkeleton } from '../components/Skeleton';
 import { ModalPortal } from '../components/ModalPortal';
 
 interface ClienteComPedidos extends Cliente {
@@ -286,11 +287,7 @@ export const ClientesPage: React.FC = () => {
 
       {/* Tabela Vertical de Clientes e Contatos */}
       {loading ? (
-        <div className="rounded-3xl bg-white border border-slate-200/80 p-6 space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-16 bg-slate-100/80 rounded-2xl animate-pulse" />
-          ))}
-        </div>
+        <ListSkeleton rows={5} />
       ) : filteredClientes.length === 0 ? (
         <div className="rounded-3xl bg-white border border-slate-200/80 p-12 text-center text-slate-400 shadow-xs">
           <Users className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />

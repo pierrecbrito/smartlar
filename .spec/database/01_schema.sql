@@ -273,3 +273,41 @@ from pedidos p
 join clientes c      on c.id = p.cliente_id
 left join tecnicos t on t.id = p.tecnico_id
 where p.status in ('agendado', 'em_andamento');
+
+-- Pedidos consolidados com dados de cliente e técnico em JSON.
+-- Utilizada pelo n8n (Workflow 01 - Novo Pedido) para re-fetch atômico pós-insert.
+create or replace view v_agenda_pedidos with (security_invoker = true) as
+select
+  p.id,
+  p.numero_pedido,
+  p.cliente_id,
+  p.tecnico_id,
+  p.status,
+  p.data_instalacao,
+  p.valor_total,
+  p.forma_pagamento,
+  p.observacoes,
+  p.endereco_instalacao,
+  p.ponto_referencia,
+  p.concluido_em,
+  p.created_at,
+  p.updated_at,
+  json_build_object(
+    'id', c.id,
+    'nome', c.nome,
+    'telefone', c.telefone,
+    'email', c.email,
+    'endereco', c.endereco
+  ) as cliente,
+  case when t.id is not null then
+    json_build_object(
+      'id', t.id,
+      'nome', t.nome,
+      'telefone', t.telefone,
+      'especialidade', t.especialidade
+    )
+  else null end as tecnico
+from pedidos p
+join clientes c on c.id = p.cliente_id
+left join tecnicos t on t.id = p.tecnico_id;
+

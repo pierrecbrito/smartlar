@@ -76,16 +76,28 @@ Este documento registra todas as decisões técnicas tomadas na concepção e im
 
 ## 3. Automações e Integrações (n8n)
 
-### 3.1 Idempotência e Padrão Re-Fetch
-- **Decisão:** Na Automação 1 (Novo Pedido via Database Webhook), o payload inicial do PostgreSQL é usado apenas para obter o `id` do pedido. O workflow efetua imediatamente um `GET /rest/v1/pedidos?id=eq.{{id}}&select=*,cliente:clientes(*)` antes de notificar por e-mail ou planilha.
-- **Motivação:** Triggers de itens rodam de forma concorrente. Buscar o pedido atualizado garante que o total esteja recalculado e os dados do cliente vinculados com 100% de consistência.
+### 3.1 Idempotência e Padrão Re-Fetch (Workflow 01 — Novo Pedido)
+- **Decisão:** Na Automação 1 (Novo Pedido via Database Webhook), o payload inicial enviado pelo Supabase captura o evento de `INSERT` na tabela `pedidos`. Como a criação atômica insere o cabeçalho antes dos itens (`itens_pedido`), o payload cru do webhook chega com `valor_total: 0`. Em vez de gravar dados incompletos ou criar nós complexos de parsing, o n8n utiliza o nó oficial do Supabase para realizar um **Re-Fetch atômico** consultando a view especializada `v_agenda_pedidos` filtrada por `id = body.record.id`. Em seguida, o nó do Google Sheets adiciona a linha na planilha *Orçamentos - SmartLar* com `numero_pedido`, `cliente.nome`, `valor_total` e data/hora formatada no fuso de Brasília (`America/Sao_Paulo`).
+- **Motivação:** Garante 100% de consistência e idempotência. Evita que condições de corrida (race conditions) entre a trigger de cálculo e a emissão do webhook gravem orçamentos com valor zerado na planilha da empresa.
 
-### 3.2 Alerta Diário com Expressão Luxon e Fuso de Brasília
-- **Decisão:** A Automação 2 roda diariamente via cron (ex: 07:00 da manhã) filtrando a view `v_instalacoes` com `data_instalacao >= startOf('day') + 1 dia` e `< endOf('day') + 1 dia`.
-- **Motivação:** Alerta os técnicos sobre os serviços do dia seguinte, avisando no corpo do e-mail/notificação requisitos especiais (ex: escada alta para instalação externa).
 
-### 3.3 Separação de Credenciais e Segurança
+### 3.2 Alerta Diário com Schedule, Tratamento de Agenda Vazia e WhatsApp (Workflow 02)
+- **Decisão:** A Automação 2 dispara diariamente às **18:00 (horário de Brasília)** via `scheduleTrigger`, no fechamento do expediente comercial. Ela consulta o Supabase na view `v_agenda_pedidos` com filtro estrito de intervalo temporal utilizando Luxon:
+  - `data_instalacao >= $now.setZone('America/Sao_Paulo').plus({ days: 1 }).startOf('day').toISO()`
+  - `data_instalacao <= $now.setZone('America/Sao_Paulo').plus({ days: 1 }).endOf('day').toISO()`
+- **Tratamento de Cenário Sem Agendamentos (Critério do Teste):** O nó do Supabase possui `alwaysOutputData: true`, conectado a um nó condicional `IF (Existem Instalacoes Amanha?)`. Caso não haja agendamentos, o fluxo não quebra nem silencia: desvia para um nó HTTP que dispara uma notificação no WhatsApp informando que a agenda de amanhã está livre.
+- **Formatação Rica & Notificação Real (WhatsApp via CallMeBot):** Havendo agendamentos, um nó JavaScript Code agrega e formata o itinerário completo (hora, técnico, cliente, telefone de contato, endereço e valor total) e realiza o disparo automatizado via API do WhatsApp, garantindo que o gestor e os técnicos recebam o plano de ação no bolso sem precisar abrir o sistema.
+
+
+### 3.3 Registro de Faturamento de Pedido Concluído (Workflow 03 — Bônus)
+- **Decisão:** A Automação 3 atua como o elo financeiro do negócio. Um Database Webhook escuta eventos de `UPDATE` na tabela `pedidos` (endpoint `/smartlar-pedido-atualizado`). O nó do Supabase busca na view `v_agenda_pedidos` aplicando filtro duplo (`id = body.record.id` e `status = 'concluido'`), assegurando que apenas a conclusão efetiva do serviço dispare o registro financeiro.
+- **Normalização de Formas de Pagamento & Google Sheets:** O nó do Google Sheets mapeia os enums do banco (`pix`, `cartao_credito`, `cartao_debito`, `boleto`, `dinheiro`) para rótulos legíveis (*"PIX"*, *"Cartão de Crédito"*, *"Boleto Bancário"*) e adiciona uma nova linha na planilha dedicada *Orçamentos Concluídos - SmartLar* com número do orçamento, data/hora formatada no fuso de Brasília, valor total, forma de pagamento e nome do cliente.
+- **Motivação:** Cumpre o bônus de controle financeiro automático sugerido pelo enunciado, separando orçamentos abertos de faturamento realizado em planilhas distintas.
+
+
+### 3.4 Separação de Credenciais e Segurança
 - **Decisão:** A chave `service_role` (que possui privilégios de superusuário) fica restrita ao cofre de credenciais do n8n. O frontend consome exclusivamente a chave pública `anon`.
+
 
 ---
 
