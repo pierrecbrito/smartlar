@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search,
-  ChevronDown,
   LogIn,
   LogOut
 } from 'lucide-react';

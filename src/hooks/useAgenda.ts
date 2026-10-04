@@ -1,33 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import {
-  Calendar as CalendarIcon,
-  Clock,
-  User,
-  MapPin,
-  Phone,
-  Play,
-  CheckCircle2,
-  AlertTriangle,
-  RefreshCw,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  CalendarDays,
-  CalendarRange,
-  X,
-  ExternalLink,
-  MessageSquare,
-  Package,
-  ArrowRight,
-  Check,
-  Filter,
-  DollarSign
-} from 'lucide-react';
+
+
 import { supabase } from '../lib/supabase';
-import { Pedido, Tecnico, StatusPedido, TipoPagamento } from '../types/database';
-import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, STATUS_CONFIG } from '../lib/utils';
+import { Pedido, Tecnico, StatusPedido } from '../types/database';
+import { formatDateTime, STATUS_CONFIG } from '../lib/utils';
 import { useToast } from '../components/Toast';
-import { ModalPortal } from '../components/ModalPortal';
 
 // Horas exibidas na grade do Google Calendar (08:00 às 18:00)
 export const CALENDAR_HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
@@ -52,7 +29,7 @@ export const useAgenda = () => {
   const [loading, setLoading] = useState(true);
 
   // Data de referência do calendário (Inicia em 02 de Outubro de 2026 - Data atual do sistema)
-  const [currentDate, setCurrentDate] = useState<Date>(() => new Date('2026-10-02T12:00:00'));
+  const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
 
   // Modos de visualização (No mobile foca em dia por padrão)
   const [viewMode, setViewMode] = useState<'semana' | 'mes' | 'dia'>(() =>
@@ -237,12 +214,12 @@ export const useAgenda = () => {
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date('2026-10-02T12:00:00'));
+    setCurrentDate(new Date());
   };
 
   // Comparador de "Hoje" (2 de Outubro de 2026)
   const isToday = (date: Date) => {
-    const today = new Date('2026-10-02T12:00:00');
+    const today = new Date();
     return (
       date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
@@ -322,7 +299,7 @@ export const useAgenda = () => {
       setRescheduleDate(`${yyyy}-${mm}-${dd}`);
       setRescheduleTime(`${hh}:${min}`);
     } else {
-      setRescheduleDate('2026-10-02');
+      setRescheduleDate(new Date().toISOString().split('T')[0]);
       setRescheduleTime('09:00');
     }
 

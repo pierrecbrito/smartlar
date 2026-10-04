@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogIn, UserPlus, X, Mail, Lock, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { LogIn, UserPlus, X, Mail, Lock, AlertCircle, ShieldCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from './Toast';
 import { ModalPortal } from './ModalPortal';

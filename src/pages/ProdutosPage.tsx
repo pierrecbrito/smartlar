@@ -3,8 +3,6 @@ import {
   Package,
   Plus,
   Search,
-  ToggleLeft,
-  ToggleRight,
   RefreshCw,
   X,
   Edit2,

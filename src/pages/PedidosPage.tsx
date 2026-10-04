@@ -7,18 +7,15 @@ import {
   History,
   Eye,
   X,
-  CreditCard,
   User,
   Clock,
   ArrowRight,
   FolderKanban,
   List,
   Search,
-  AlertCircle,
   AlertTriangle,
   Lock,
   FileText,
-  Share2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Pedido, Tecnico, StatusPedido, HistoricoStatus } from '../types/database';

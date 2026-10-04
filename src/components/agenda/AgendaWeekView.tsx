@@ -1,41 +1,19 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React from 'react';
 import {
-  Calendar as CalendarIcon,
   Clock,
   User,
   MapPin,
-  Phone,
-  Play,
-  CheckCircle2,
   AlertTriangle,
-  RefreshCw,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  CalendarDays,
-  CalendarRange,
-  X,
-  ExternalLink,
-  MessageSquare,
-  Package,
-  ArrowRight,
-  Check,
-  Filter,
-  DollarSign
+  ArrowRight
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { Pedido, Tecnico, StatusPedido, TipoPagamento } from '../../types/database';
-import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, STATUS_CONFIG } from '../../lib/utils';
-import { useToast } from '../Toast';
-import { ModalPortal } from '../ModalPortal';
-import { AgendaState, CALENDAR_HOURS, DIAS_SEMANA } from '../../hooks/useAgenda';
+import { AgendaState, DIAS_SEMANA } from '../../hooks/useAgenda';
 
 interface Props {
   agenda: AgendaState;
 }
 
 export const AgendaWeekView: React.FC<Props> = ({ agenda }) => {
-  const { pedidos, setPedidos, pedidosSemData, setPedidosSemData, tecnicos, setTecnicos, loading, setLoading, currentDate, setCurrentDate, viewMode, setViewMode, selectedTecnicoFilter, setSelectedTecnicoFilter, selectedStatusFilter, setSelectedStatusFilter, searchQuery, setSearchQuery, selectedEvent, setSelectedEvent, reschedulingOrder, setReschedulingOrder, rescheduleDate, setRescheduleDate, rescheduleTime, setRescheduleTime, rescheduleTecnicoId, setRescheduleTecnicoId, rescheduleObs, setRescheduleObs, savingReschedule, setSavingReschedule, showToast, loadData, conflitosPorTecnico, conflitoRemarcacao, weekStart, weekDays, monthDays, handlePrev, handleNext, handleToday, isToday, isSameDay, headerDateTitle, filteredPedidos, handleOpenReschedule, handleSaveReschedule, rescheduleConflict, handleUpdateStatus, getEventBadgeStyle } = agenda;
+  const { pedidos, setPedidos, pedidosSemData, setPedidosSemData, tecnicos, setTecnicos, loading, setLoading, currentDate, setCurrentDate, viewMode, setViewMode, selectedTecnicoFilter, setSelectedTecnicoFilter, selectedStatusFilter, setSelectedStatusFilter, searchQuery, setSearchQuery, selectedEvent, setSelectedEvent, reschedulingOrder, setReschedulingOrder, rescheduleDate, setRescheduleDate, rescheduleTime, setRescheduleTime, rescheduleTecnicoId, setRescheduleTecnicoId, rescheduleObs, setRescheduleObs, savingReschedule, setSavingReschedule, showToast, loadData, conflitosPorTecnico, conflitoRemarcacao, weekStart, weekDays, monthDays, handlePrev, handleNext, handleToday, isToday, isSameDay, filteredPedidos, handleOpenReschedule, getEventBadgeStyle } = agenda;
 
   return (
     <>

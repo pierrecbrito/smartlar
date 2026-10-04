@@ -3,7 +3,6 @@ import {
   Users,
   UserPlus,
   Search,
-  Phone,
   Mail,
   MapPin,
   RefreshCw,
@@ -12,9 +11,6 @@ import {
   ArrowRight,
   ExternalLink,
   MessageSquare,
-  ShoppingBag,
-  CheckCircle2,
-  Clock,
   Loader2
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';

@@ -1,51 +1,20 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React from 'react';
 import {
-  Plus,
-  Minus,
-  Trash2,
-  UserPlus,
-  Search,
   CheckCircle2,
-  X,
-  User,
-  ShoppingBag,
-  Package,
-  Shield,
-  Lightbulb,
-  Cpu,
-  Lock,
-  Camera,
-  Wifi,
-  Radio,
-  Sliders,
-  Sparkles,
-  ArrowRight,
   ArrowLeft,
   MapPin,
-  Percent,
-  ChevronDown,
-  Check,
-  CreditCard,
-  ClipboardCheck,
   Tag,
-  AlertTriangle,
-  Loader2,
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { Cliente, Produto, TipoPagamento, Pedido, ItemPedido } from '../../types/database';
-import { formatCurrency, formatPhone, formatOrderCode, maskPhone } from '../../lib/utils';
-import { maskCep, buscarCep, formatarEnderecoCompleto, formatarEnderecoListagem } from '../../lib/cep';
-import { useToast } from '../Toast';
-import { ModalPortal } from '../ModalPortal';
-import { OrcamentoPdfModal } from '../OrcamentoPdfModal';
-import { NovoPedidoState, CartItem } from '../../hooks/useNovoPedido';
+import { TipoPagamento } from '../../types/database';
+import { formatCurrency, formatPhone } from '../../lib/utils';
+import { NovoPedidoState } from '../../hooks/useNovoPedido';
 
 interface Props {
   state: NovoPedidoState;
 }
 
 export const OrderConfirmPanel: React.FC<Props> = ({ state }) => {
-  const { clientes, setClientes, produtos, setProdutos, selectedClienteId, setSelectedClienteId, cart, setCart, observacoes, setObservacoes, descontoPercentual, setDescontoPercentual, formaPagamento, setFormaPagamento, loadingInitial, setLoadingInitial, submitting, setSubmitting, detalhesMode, setDetalhesMode, isClientDropdownOpen, setIsClientDropdownOpen, clientSearchTerm, setClientSearchTerm, clientDropdownRef, isProductSelectOpen, setIsProductSelectOpen, productSelectSearch, setProductSelectSearch, productSelectRef, isNewClientModalOpen, setIsNewClientModalOpen, newClientNome, setNewClientNome, newClientTelefone, setNewClientTelefone, newClientEmail, setNewClientEmail, newClientCep, setNewClientCep, newClientLogradouro, setNewClientLogradouro, newClientNumero, setNewClientNumero, newClientComplemento, setNewClientComplemento, newClientBairro, setNewClientBairro, newClientCidade, setNewClientCidade, newClientEstado, setNewClientEstado, newClientPontoReferencia, setNewClientPontoReferencia, loadingClientCep, setLoadingClientCep, newClientNumeroRef, savingClient, setSavingClient, productSearch, setProductSearch, selectedCategoria, setSelectedCategoria, createdOrderPdfData, setCreatedOrderPdfData, showToast, loadData, categorias, filteredProdutos, selectedCliente, addToCart, updateQuantity, removeFromCart, filteredSelectProdutos, filteredClientes, subtotalItens, valorDesconto, totalCalculadoAoVivo, handleNewClientCepChange, resetNewClientForm, handleCreateNewClient, handleOpenConfirmation, handleSubmitOrder } = state;
+  const { cart, observacoes, setObservacoes, descontoPercentual, setDescontoPercentual, formaPagamento, setFormaPagamento, submitting, setDetalhesMode, selectedCliente, subtotalItens, valorDesconto, totalCalculadoAoVivo, handleSubmitOrder } = state;
 
   return (
     <>

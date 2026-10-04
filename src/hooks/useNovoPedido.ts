@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Cliente, Produto, TipoPagamento, Pedido, ItemPedido } from '../types/database';
-import { formatCurrency, formatPhone, formatOrderCode, maskPhone } from '../lib/utils';
-import { maskCep, buscarCep, formatarEnderecoCompleto, formatarEnderecoListagem } from '../lib/cep';
+import { formatCurrency, formatOrderCode } from '../lib/utils';
+import { maskCep, buscarCep, formatarEnderecoCompleto } from '../lib/cep';
 import { useToast } from '../components/Toast';
-import { ModalPortal } from '../components/ModalPortal';
-import { OrcamentoPdfModal } from '../components/OrcamentoPdfModal';
 
 export interface CartItem {
   produto: Produto;

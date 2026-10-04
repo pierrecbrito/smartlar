@@ -1,34 +1,14 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React from 'react';
 import {
-  Calendar as CalendarIcon,
-  Clock,
-  User,
-  MapPin,
-  Phone,
-  Play,
-  CheckCircle2,
   AlertTriangle,
   RefreshCw,
-  Search,
-  ChevronLeft,
-  ChevronRight,
   CalendarDays,
-  CalendarRange,
   X,
-  ExternalLink,
-  MessageSquare,
-  Package,
-  ArrowRight,
-  Check,
-  Filter,
-  DollarSign
+  Check
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { Pedido, Tecnico, StatusPedido, TipoPagamento } from '../../types/database';
-import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, STATUS_CONFIG } from '../../lib/utils';
-import { useToast } from '../Toast';
+import { formatDateTime, formatOrderCode } from '../../lib/utils';
 import { ModalPortal } from '../ModalPortal';
-import { AgendaState, CALENDAR_HOURS, DIAS_SEMANA } from '../../hooks/useAgenda';
+import { AgendaState } from '../../hooks/useAgenda';
 
 interface Props {
   agenda: AgendaState;
@@ -101,7 +81,7 @@ export const AgendaRescheduleModal: React.FC<Props> = ({ agenda }) => {
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   <button
                     type="button"
-                    onClick={() => setRescheduleDate('2026-10-02')}
+                    onClick={() => setRescheduleDate(new Date().toISOString().split('T')[0])}
                     className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] transition-colors cursor-pointer"
                   >
                     Hoje (02/10)
@@ -123,7 +103,7 @@ export const AgendaRescheduleModal: React.FC<Props> = ({ agenda }) => {
                   <button
                     type="button"
                     onClick={() => {
-                      const d = new Date(rescheduleDate || '2026-10-02');
+                      const d = new Date(rescheduleDate || new Date().toISOString().split('T')[0]);
                       d.setDate(d.getDate() + 7);
                       setRescheduleDate(d.toISOString().slice(0, 10));
                     }}

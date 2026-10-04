@@ -398,7 +398,7 @@ export async function uploadOrcamentoPdfToSupabase(
   const fileName = `orcamento-${cleanOrderNum}.pdf`;
 
   try {
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('orcamentos')
       .upload(fileName, blob, {
         contentType: 'application/pdf',

@@ -7,9 +7,6 @@ import {
   Users,
   Package,
   ShieldCheck,
-  Smartphone,
-  ExternalLink,
-  HelpCircle,
 } from 'lucide-react';
 import { NavTab } from './Navbar';
 

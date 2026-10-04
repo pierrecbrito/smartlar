@@ -1,13 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  Phone,
   MessageSquare,
-  Copy,
-  Check,
-  AlertTriangle,
   AlertCircle,
-  TrendingUp,
-  DollarSign,
   Wallet,
   Calendar,
   CalendarDays,
@@ -15,20 +9,14 @@ import {
   User,
   Users,
   MapPin,
-  ArrowRight,
-  ArrowUpRight,
   CheckCircle2,
   ChevronRight,
-  ExternalLink,
-  Shield,
   Send,
-  Sliders,
-  CheckSquare,
   ClipboardList,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Pedido, Tecnico, StatusPedido } from '../types/database';
-import { formatCurrency, formatDateTime, formatDate, formatPhone, formatOrderCode, STATUS_CONFIG } from '../lib/utils';
+import { Pedido, Tecnico } from '../types/database';
+import { formatCurrency, formatDateTime, formatPhone, formatOrderCode } from '../lib/utils';
 import { useToast } from '../components/Toast';
 
 interface DashboardPageProps {
