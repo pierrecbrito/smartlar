@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { Database } from '../types/database';
 
 // Credenciais vêm exclusivamente das variáveis de ambiente (.env).
 // Nenhuma chave é lida/gravada em localStorage.
@@ -15,7 +16,7 @@ if (!isSupabaseConfigured) {
   );
 }
 
-// Fallback seguro apenas para evitar crash na inicialização quando o .env está ausente.
+// Instância do cliente Supabase com persistência segura de sessão
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder-url.supabase.co',
   supabaseAnonKey || 'placeholder-key',

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Pedido, Tecnico, Cliente, StatusPedido } from '../types/database';
 import { formatOrderCode, STATUS_CONFIG } from '../lib/utils';
@@ -15,15 +16,22 @@ import {
   INITIAL_PEDIDOS_FILTERS,
   countActiveFilters,
 } from '../types/pedidosFilters';
+import { usePedidos, useUpdatePedidoStatus } from '../hooks/queries/usePedidos';
+import { useTecnicosQuery, useClientesQuery } from '../hooks/queries/useSharedData';
 
 export const PedidosPage: React.FC = () => {
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [tecnicos, setTecnicos] = useState<Tecnico[]>([]);
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const targetOrderIdFromUrl = searchParams.get('id');
+
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('todos');
   const [viewMode, setViewMode] = useState<'kanban' | 'lista'>('kanban');
   const [filters, setFilters] = useState<PedidosFilterState>(INITIAL_PEDIDOS_FILTERS);
+
+  // Queries TanStack com cache e sincronização Realtime
+  const { data: pedidos = [], isLoading: loadingPedidos, refetch: refetchPedidos } = usePedidos();
+  const { data: tecnicos = [] } = useTecnicosQuery();
+  const { data: clientes = [] } = useClientesQuery();
+  const updateStatusMutation = useUpdatePedidoStatus();
 
   // Modais de apoio
   const [schedulingOrder, setSchedulingOrder] = useState<Pedido | null>(null);
@@ -33,49 +41,17 @@ export const PedidosPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const loadData = async (silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      const [pedidosRes, tecnicosRes, clientesRes] = await Promise.all([
-        supabase
-          .from('pedidos')
-          .select(`
-            *,
-            cliente:clientes(id, nome, telefone, endereco),
-            tecnico:tecnicos(id, nome, telefone, especialidade),
-            itens:itens_pedido(
-              id,
-              quantidade,
-              preco_unitario,
-              subtotal,
-              produto:produtos(id, nome, categoria)
-            )
-          `)
-          .order('created_at', { ascending: false }),
-        supabase.from('tecnicos').select('*').eq('ativo', true).order('nome', { ascending: true }),
-        supabase.from('clientes').select('id, nome, telefone, endereco').order('nome', { ascending: true }),
-      ]);
-
-      if (pedidosRes.error) throw pedidosRes.error;
-      if (tecnicosRes.error) throw tecnicosRes.error;
-      if (clientesRes.error) throw clientesRes.error;
-
-      setPedidos((pedidosRes.data || []) as Pedido[]);
-      setTecnicos((tecnicosRes.data || []) as Tecnico[]);
-      setClientes((clientesRes.data || []) as Cliente[]);
-    } catch (err: any) {
-      console.error('Erro ao carregar pedidos:', err);
-      showToast('error', 'Falha ao carregar pedidos', err.message);
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  };
-
+  // Se a URL contiver `?id=...` (vindo da busca global ou deep-link), abre o pedido automaticamente
   useEffect(() => {
-    loadData();
-  }, []);
+    if (targetOrderIdFromUrl && pedidos.length > 0) {
+      const found = pedidos.find((p) => p.id === targetOrderIdFromUrl);
+      if (found) {
+        setViewingOrder(found);
+      }
+    }
+  }, [targetOrderIdFromUrl, pedidos]);
 
-  // Mapeamento de quantos pedidos cada cliente possui
+  // Mapeamento de contagem de pedidos por cliente
   const clientOrderCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     pedidos.forEach((p) => {
@@ -86,11 +62,11 @@ export const PedidosPage: React.FC = () => {
     return counts;
   }, [pedidos]);
 
-  // Aplicação de todos os filtros (Cliente, Valores, Técnico, Período, Busca, Status)
+  // Aplicação de filtros
   const filteredPedidos = useMemo(() => {
     return pedidos
       .filter((p) => {
-        // 1. Status (aplicado quando no modo lista)
+        // 1. Status (no modo lista)
         if (viewMode === 'lista' && selectedStatusFilter !== 'todos') {
           if (p.status !== selectedStatusFilter) return false;
         }
@@ -102,7 +78,7 @@ export const PedidosPage: React.FC = () => {
           }
         }
 
-        // 3. Filtro por Faixa de Valores (Preço / Total do Pedido)
+        // 3. Faixa de Valores
         const total = p.valor_total || 0;
         if (filters.valorMin !== '') {
           const min = parseFloat(filters.valorMin);
@@ -113,14 +89,14 @@ export const PedidosPage: React.FC = () => {
           if (!isNaN(max) && total > max) return false;
         }
 
-        // 4. Filtro por Técnico Alocado
+        // 4. Técnico Alocado
         if (filters.tecnicoId === 'sem_tecnico') {
           if (p.tecnico_id) return false;
         } else if (filters.tecnicoId !== 'todos') {
           if (p.tecnico_id !== filters.tecnicoId) return false;
         }
 
-        // 5. Filtro por Período de Criação
+        // 5. Período
         if (filters.periodo !== 'todos') {
           const orderDate = new Date(p.created_at);
           const now = new Date();
@@ -174,12 +150,10 @@ export const PedidosPage: React.FC = () => {
         if (filters.sortBy === 'cliente_az') {
           return (a.cliente?.nome || '').localeCompare(b.cliente?.nome || '');
         }
-        // default: 'recentes'
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
   }, [pedidos, viewMode, selectedStatusFilter, filters]);
 
-  // Valor total somado dos pedidos que atendem aos filtros atuais
   const totalFilteredValue = useMemo(() => {
     return filteredPedidos.reduce((acc, p) => acc + (p.valor_total || 0), 0);
   }, [filteredPedidos]);
@@ -198,37 +172,21 @@ export const PedidosPage: React.FC = () => {
       return;
     }
 
-    // Atualização otimista imediata para transição instantânea e fluida
-    const previousPedidos = [...pedidos];
-    setPedidos((prev) =>
-      prev.map((p) => (p.id === pedido.id ? { ...p, status: novoStatus } : p))
-    );
-
     try {
-      const { error } = await supabase
-        .from('pedidos')
-        .update({ status: novoStatus })
-        .eq('id', pedido.id);
-
-      if (error) throw error;
+      await updateStatusMutation.mutateAsync({
+        pedidoId: pedido.id,
+        novoStatus,
+      });
 
       showToast(
         'success',
         `Status atualizado para "${STATUS_CONFIG[novoStatus].label}"`,
         `Pedido ${formatOrderCode(pedido)} avançou no fluxo.`
       );
-
-      // Sincroniza em background
-      loadData(true);
-    } catch (err: any) {
-      // Reverte a alteração otimista caso o banco rejeite
-      setPedidos(previousPedidos);
+    } catch (err: unknown) {
       console.error('Erro na transição:', err);
-      showToast(
-        'error',
-        'Transição de status não permitida',
-        err.message || 'Verifique as regras de fluxo do pedido.'
-      );
+      const msg = err instanceof Error ? err.message : 'Regra de negócio violada no servidor.';
+      showToast('error', 'Transição de status não permitida', msg);
     }
   };
 
@@ -236,7 +194,7 @@ export const PedidosPage: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in text-slate-800">
-      {/* Barra de Filtros Inteligentes (Cliente, Faixa de Valores, Busca, Modo) */}
+      {/* Barra de Filtros Inteligentes */}
       <PedidosFilterBar
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -257,7 +215,7 @@ export const PedidosPage: React.FC = () => {
       {viewMode === 'kanban' ? (
         <PedidosKanbanView
           pedidos={filteredPedidos}
-          loading={loading}
+          loading={loadingPedidos}
           onTransitionStatus={handleTransitionStatus}
           onOpenHistory={(pedido) => setHistoryOrder(pedido)}
           onOpenDetails={(pedido) => setViewingOrder(pedido)}
@@ -269,7 +227,7 @@ export const PedidosPage: React.FC = () => {
       ) : (
         <PedidosListView
           pedidos={filteredPedidos}
-          loading={loading}
+          loading={loadingPedidos}
           onTransitionStatus={handleTransitionStatus}
           onOpenHistory={(pedido) => setHistoryOrder(pedido)}
           onOpenDetails={(pedido) => setViewingOrder(pedido)}
@@ -284,21 +242,8 @@ export const PedidosPage: React.FC = () => {
           tecnicos={tecnicos}
           allPedidos={pedidos}
           onClose={() => setSchedulingOrder(null)}
-          onSuccess={(pedidoId, tecnicoId, isoDate, tecnicoObj) => {
-            setPedidos((prev) =>
-              prev.map((p) =>
-                p.id === pedidoId
-                  ? {
-                      ...p,
-                      status: 'agendado',
-                      tecnico_id: tecnicoId,
-                      tecnico: tecnicoObj || p.tecnico,
-                      data_instalacao: isoDate,
-                    }
-                  : p
-              )
-            );
-            loadData(true);
+          onSuccess={async () => {
+            await refetchPedidos();
           }}
           showToast={showToast}
         />

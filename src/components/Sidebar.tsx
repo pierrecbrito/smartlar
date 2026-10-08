@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -11,8 +12,8 @@ import {
 import { NavTab } from './Navbar';
 
 interface SidebarProps {
-  currentTab: NavTab;
-  onTabChange: (tab: NavTab) => void;
+  currentTab?: NavTab;
+  onTabChange?: (tab: NavTab) => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -23,18 +24,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
 }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Deriva a aba ativa a partir do path atual da URL
+  const currentPath = location.pathname.replace(/^\//, '') || 'dashboard';
+  const activeTab: NavTab = (currentTab || currentPath.split('/')[0] || 'dashboard') as NavTab;
 
   const menuItems = [
-    { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'novo-pedido' as NavTab, label: 'Novo Pedido', icon: ShoppingBag },
-    { id: 'pedidos' as NavTab, label: 'Gestão de Pedidos', icon: ClipboardList },
-    { id: 'agenda' as NavTab, label: 'Agenda & Instalações', icon: Calendar },
-    { id: 'clientes' as NavTab, label: 'Clientes & Contatos', icon: Users },
-    { id: 'produtos' as NavTab, label: 'Catálogo de Produtos', icon: Package },
+    { id: 'dashboard' as NavTab, path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'novo-pedido' as NavTab, path: '/novo-pedido', label: 'Novo Pedido', icon: ShoppingBag },
+    { id: 'pedidos' as NavTab, path: '/pedidos', label: 'Gestão de Pedidos', icon: ClipboardList },
+    { id: 'agenda' as NavTab, path: '/agenda', label: 'Agenda & Instalações', icon: Calendar },
+    { id: 'clientes' as NavTab, path: '/clientes', label: 'Clientes & Contatos', icon: Users },
+    { id: 'produtos' as NavTab, path: '/produtos', label: 'Catálogo de Produtos', icon: Package },
   ];
 
-  const handleSelect = (tab: NavTab) => {
-    onTabChange(tab);
+  const handleSelect = (item: (typeof menuItems)[0]) => {
+    navigate(item.path);
+    if (onTabChange) onTabChange(item.id);
     onClose();
   };
 
@@ -55,9 +63,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }`}
       >
         <div className="flex flex-col flex-1 overflow-y-auto">
-          {/* Top Brand: Logo + Name (Akino style) */}
-          <div className="flex items-center gap-3 px-6 py-6 border-b border-slate-100">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/25 shrink-0">
+          {/* Top Brand: Logo + Name */}
+          <div
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-3 px-6 py-6 border-b border-slate-100 cursor-pointer group"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/25 shrink-0 group-hover:scale-105 transition-transform">
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -78,19 +89,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <nav className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = currentTab === item.id;
+                const isActive = activeTab === item.id;
 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => handleSelect(item.id)}
+                    onClick={() => handleSelect(item)}
                     className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer relative group ${
                       isActive
                         ? 'bg-blue-50/80 text-blue-700 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`}
                   >
-                    {/* Active vertical pill indicator on left (Exact Akino style) */}
+                    {/* Active vertical pill indicator on left */}
                     {isActive && (
                       <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-blue-600 rounded-r-full shadow-sm" />
                     )}

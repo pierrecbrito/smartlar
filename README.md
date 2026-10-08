@@ -11,11 +11,18 @@ Desenvolvido para o teste técnico da **IAplicada** (Junior No-Code Dev), com fo
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                   Frontend Tablet POS (SPA)                  │
-│     Vite + React + TypeScript + Tailwind CSS + Lucide Icons   │
-│                 @supabase/supabase-js Client                 │
+│  Vite + React 18 + TypeScript + Tailwind CSS + Lucide Icons  │
+│  React Router DOM • TanStack Query v5 • Supabase Realtime    │
+│  React Hook Form + Zod • Command Palette (Ctrl+K)            │
+│   - Roteamento declarativo com deep links (/pedidos?id=...)  │
+│   - Cache inteligente & deduplicação com TanStack Query      │
+│   - Sincronização em tempo real (Supabase Realtime Channel)  │
+│   - Busca global universal (Ctrl+K) para pedidos e clientes  │
+│   - Menu dropdown com confirmação segura de logout no avatar │
+│   - Validação estrita de contratos de dados com Zod          │
+│   - AuthContext centralizado com tipagem forte (User/Session)│
 │   - Slim dark icon rail com notch visual ativo               │
 │   - Painel lateral fixo (Order Details Drawer) com stepper   │
-│   - Filtros de categoria e status em pílulas (Pills)         │
 │   - Arquitetura modular: páginas orquestradoras (< 200 linhas)│
 │     e componentes especialistas desacoplados (SOLID)         │
 └──────────────────────────────┬───────────────────────────────┘
@@ -31,7 +38,8 @@ Desenvolvido para o teste técnico da **IAplicada** (Junior No-Code Dev), com fo
 │    * itens_bi / itens_ai: snapshot de preço e recálculo total│
 │  - RPC criar_pedido(): transação atômica pedido + itens      │
 │  - Views: v_dashboard_resumo, v_instalacoes (security invoker)│
-│  - Row Level Security (RLS) com políticas por perfil         │
+│  - Row Level Security (RLS) com políticas ativas             │
+│  - Realtime CDC ativado para tabela de pedidos               │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -90,20 +98,23 @@ smartlar/
 └── src/                  # Aplicação Frontend (React + Vite + TypeScript)
     ├── components/       # Componentes de UI modulares desacoplados
     │   ├── agenda/       # Agenda (Toolbar, Views Diária/Semanal/Mensal, Modais)
-    │   ├── clientes/     # Clientes (ClientesList Mobile/Desktop, Modais de Pedidos e Novo Cliente)
+    │   ├── clientes/     # Clientes (ClientesList Mobile/Desktop, Modais com Zod)
     │   ├── dashboard/    # Dashboard (Métricas, Agenda, Pendentes de Aprovação, Técnicos)
     │   ├── novo-pedido/  # PDV (Catálogo, Carrinho Drawer, Modal de Sucesso)
-    │   ├── pedidos/      # Pedidos (Filtros, Kanban D&D, Lista, Modais de Agendamento/Histórico/Itens)
-    │   ├── produtos/     # Produtos (Filtros, Tabela/Cards, Modais de Preço e Novo Equipamento)
+    │   ├── pedidos/      # Pedidos (Filtros, Kanban D&D Realtime, Lista, Modais)
+    │   ├── produtos/     # Produtos (Filtros, Tabela/Cards, Modais com Zod)
     │   ├── ErrorBoundary.tsx # Barreira global de erros de renderização
+    │   ├── GlobalSearchModal.tsx # Command Palette universal (Ctrl+K)
     │   ├── ModalPortal.tsx   # Portal React para renderização de modais no body
     │   ├── OrcamentoPdfModal.tsx # Geração de proposta comercial em PDF e envio WhatsApp
     │   ├── Skeleton.tsx  # Placeholders de carregamento progressivo
     │   └── Toast.tsx     # Contexto e renderizador de notificações toast
-    ├── hooks/            # Custom Hooks desacoplados (useAgenda, useNovoPedido)
-    ├── pages/            # 6 Páginas orquestradoras enxutas (< 200 linhas cada)
-    ├── lib/              # Cliente Supabase, utilitários, formatações e integração ViaCEP
-    └── types/            # Tipagens TypeScript derivadas do schema do banco
+    ├── contexts/         # Contextos da aplicação (AuthContext centralizado)
+    ├── hooks/            # Custom Hooks (useAgenda, useNovoPedido) e queries TanStack
+    │   └── queries/      # usePedidos (Realtime sync), useSharedData
+    ├── pages/            # 6 Páginas orquestradoras roteadas via React Router DOM
+    ├── lib/              # Supabase, queryClient, Zod schemas, utilitários, ViaCEP
+    └── types/            # Tipagens TypeScript estritas derivadas do schema do banco
 ```
 
 ---
@@ -180,6 +191,7 @@ A especificação completa do sistema encontra-se catalogada na pasta [`.spec/`]
 ## Histórico de Governança & Decisões (`.spec/docs/`)
 
 - [DECISIONS.md](.spec/docs/DECISIONS.md) — Racional técnico e justificativa de arquitetura.
+- [GUIA_ENTREVISTA_TECNICA.md](GUIA_ENTREVISTA_TECNICA.md) — Guia completo de defesa técnica em entrevista, perguntas e respostas, arquitetura e arquivos.
 - [IA-LOG.md](.spec/docs/IA-LOG.md) — Relatório de transparência do uso de Inteligência Artificial.
 - [PLANO_PROJETO.md](.spec/docs/PLANO_PROJETO.md) — Planejamento estratégico e matriz de avaliação.
 - [teste-pratico-dev-nocode-junior.pdf](.spec/docs/teste-pratico-dev-nocode-junior.pdf) — Documento de especificação original.

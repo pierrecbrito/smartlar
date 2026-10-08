@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -10,19 +11,30 @@ import {
 import { NavTab } from './Navbar';
 
 interface BottomNavProps {
-  currentTab: NavTab;
-  onTabChange: (tab: NavTab) => void;
+  currentTab?: NavTab;
+  onTabChange?: (tab: NavTab) => void;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const currentPath = location.pathname.replace(/^\//, '') || 'dashboard';
+  const activeTab: NavTab = (currentTab || currentPath.split('/')[0] || 'dashboard') as NavTab;
+
   const navItems = [
-    { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'novo-pedido' as NavTab, label: 'Novo Orçamento', icon: ShoppingBag },
-    { id: 'pedidos' as NavTab, label: 'Pedidos', icon: ClipboardList },
-    { id: 'agenda' as NavTab, label: 'Agenda', icon: Calendar },
-    { id: 'clientes' as NavTab, label: 'Clientes', icon: Users },
-    { id: 'produtos' as NavTab, label: 'Produtos', icon: Package },
+    { id: 'dashboard' as NavTab, path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'novo-pedido' as NavTab, path: '/novo-pedido', label: 'Novo Orçamento', icon: ShoppingBag },
+    { id: 'pedidos' as NavTab, path: '/pedidos', label: 'Pedidos', icon: ClipboardList },
+    { id: 'agenda' as NavTab, path: '/agenda', label: 'Agenda', icon: Calendar },
+    { id: 'clientes' as NavTab, path: '/clientes', label: 'Clientes', icon: Users },
+    { id: 'produtos' as NavTab, path: '/produtos', label: 'Produtos', icon: Package },
   ];
+
+  const handleSelect = (item: (typeof navItems)[0]) => {
+    navigate(item.path);
+    if (onTabChange) onTabChange(item.id);
+  };
 
   return (
     <nav
@@ -32,14 +44,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange })
       <div className="pointer-events-auto bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-3xl shadow-[0_10px_35px_rgba(0,0,0,0.12)] p-1.5 sm:p-2 flex items-center justify-center gap-1.5 sm:gap-3 max-w-sm sm:max-w-md w-full">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentTab === item.id;
+          const isActive = activeTab === item.id;
 
           return (
             <button
               key={item.id}
               id={`bottom-nav-${item.id}`}
               type="button"
-              onClick={() => onTabChange(item.id)}
+              onClick={() => handleSelect(item)}
               aria-label={item.label}
               title={item.label}
               className={`flex-1 py-2.5 sm:py-3 rounded-2xl transition-all cursor-pointer flex items-center justify-center relative touch-manipulation ${
@@ -49,9 +61,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange })
               }`}
             >
               <Icon className="w-5 h-5 sm:w-5 sm:h-5" />
-              {isActive && (
-                <span className="sr-only">(ativo)</span>
-              )}
+              {isActive && <span className="sr-only">(ativo)</span>}
             </button>
           );
         })}

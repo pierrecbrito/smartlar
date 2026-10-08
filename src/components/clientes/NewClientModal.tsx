@@ -1,39 +1,66 @@
 import React, { useRef, useState } from 'react';
-import { MapPin, Loader2, UserPlus, X } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { MapPin, Loader2, UserPlus, X, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { maskPhone } from '../../lib/utils';
 import { maskCep, buscarCep, formatarEnderecoCompleto } from '../../lib/cep';
 import { ModalPortal } from '../ModalPortal';
+import { clienteSchema, ClienteFormData } from '../../lib/schemas';
+import { Cliente } from '../../types/database';
 
 interface NewClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (novoCliente: any) => void;
+  onSuccess: (novoCliente: Cliente) => void;
   showToast: (type: 'success' | 'error' | 'info' | 'warning', title: string, message?: string) => void;
 }
 
-export const NewClientModal: React.FC<NewClientModalProps> = ({ isOpen, onClose, onSuccess, showToast }) => {
-  const [nome, setNome] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [email, setEmail] = useState('');
-
-  const [cep, setCep] = useState('');
-  const [logradouro, setLogradouro] = useState('');
-  const [numero, setNumero] = useState('');
-  const [complemento, setComplemento] = useState('');
-  const [bairro, setBairro] = useState('');
-  const [cidade, setCidade] = useState('Recife');
-  const [estado, setEstado] = useState('PE');
-  const [pontoReferencia, setPontoReferencia] = useState('');
+export const NewClientModal: React.FC<NewClientModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  showToast,
+}) => {
   const [loadingCep, setLoadingCep] = useState(false);
   const numeroInputRef = useRef<HTMLInputElement>(null);
 
-  const [saving, setSaving] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ClienteFormData>({
+    resolver: zodResolver(clienteSchema),
+    defaultValues: {
+      nome: '',
+      telefone: '',
+      email: '',
+      cep: '',
+      logradouro: '',
+      numero: '',
+      complemento: '',
+      bairro: '',
+      cidade: 'Recife',
+      estado: 'PE',
+      ponto_referencia: '',
+    },
+  });
+
+  const cepValue = watch('cep');
+  const telefoneValue = watch('telefone');
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const masked = maskPhone(e.target.value);
+    setValue('telefone', masked, { shouldValidate: true });
+  };
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     const masked = maskCep(raw);
-    setCep(masked);
+    setValue('cep', masked, { shouldValidate: true });
 
     const clean = raw.replace(/\D/g, '');
     if (clean.length === 8) {
@@ -41,10 +68,10 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ isOpen, onClose,
       try {
         const info = await buscarCep(clean);
         if (info && !info.erro) {
-          if (info.logradouro) setLogradouro(info.logradouro);
-          if (info.bairro) setBairro(info.bairro);
-          if (info.localidade) setCidade(info.localidade);
-          if (info.uf) setEstado(info.uf);
+          if (info.logradouro) setValue('logradouro', info.logradouro, { shouldValidate: true });
+          if (info.bairro) setValue('bairro', info.bairro, { shouldValidate: true });
+          if (info.localidade) setValue('cidade', info.localidade, { shouldValidate: true });
+          if (info.uf) setValue('estado', info.uf, { shouldValidate: true });
           showToast('info', 'Endereço localizado via CEP', `${info.logradouro || ''}, ${info.bairro || ''}`);
           setTimeout(() => {
             numeroInputRef.current?.focus();
@@ -60,80 +87,53 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ isOpen, onClose,
     }
   };
 
-  const resetForm = () => {
-    setNome('');
-    setTelefone('');
-    setEmail('');
-    setCep('');
-    setLogradouro('');
-    setNumero('');
-    setComplemento('');
-    setBairro('');
-    setCidade('Recife');
-    setEstado('PE');
-    setPontoReferencia('');
-  };
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+  const onSubmit = async (data: ClienteFormData) => {
     try {
-      const cleanPhone = telefone.replace(/\D/g, '');
-      if (cleanPhone.length < 10 || cleanPhone.length > 13) {
-        throw new Error('O telefone deve ter entre 10 e 13 dígitos numéricos.');
-      }
-
-      if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-        throw new Error('Por favor, informe um endereço de e-mail válido.');
-      }
+      const cleanPhone = data.telefone.replace(/\D/g, '');
 
       const enderecoCompleto = formatarEnderecoCompleto({
-        cep: cep.trim(),
-        logradouro: logradouro.trim(),
-        numero: numero.trim(),
-        complemento: complemento.trim(),
-        bairro: bairro.trim(),
-        cidade: cidade.trim(),
-        estado: estado.trim(),
+        cep: data.cep?.trim() || '',
+        logradouro: data.logradouro?.trim() || '',
+        numero: data.numero?.trim() || '',
+        complemento: data.complemento?.trim() || '',
+        bairro: data.bairro?.trim() || '',
+        cidade: data.cidade?.trim() || 'Recife',
+        estado: data.estado?.trim() || 'PE',
       });
 
       if (!enderecoCompleto) {
         throw new Error('Informe o logradouro e número da instalação.');
       }
 
-      const { data, error } = await supabase
+      const { data: createdClient, error } = await supabase
         .from('clientes')
         .insert({
-          nome: nome.trim(),
+          nome: data.nome.trim(),
           telefone: cleanPhone,
-          email: email.trim() || null,
+          email: data.email?.trim() || null,
           endereco: enderecoCompleto,
-          cep: cep.trim() || null,
-          logradouro: logradouro.trim() || null,
-          numero: numero.trim() || null,
-          complemento: complemento.trim() || null,
-          bairro: bairro.trim() || null,
-          cidade: cidade.trim() || 'Recife',
-          estado: estado.trim() || 'PE',
-          ponto_referencia: pontoReferencia.trim() || null,
+          cep: data.cep?.trim() || null,
+          logradouro: data.logradouro?.trim() || null,
+          numero: data.numero?.trim() || null,
+          complemento: data.complemento?.trim() || null,
+          bairro: data.bairro?.trim() || null,
+          cidade: data.cidade?.trim() || 'Recife',
+          estado: data.estado?.trim() || 'PE',
+          ponto_referencia: data.ponto_referencia?.trim() || null,
         })
-        .select(`
-          *,
-          pedidos:pedidos(id, numero_pedido, status, valor_total)
-        `)
+        .select('*')
         .single();
 
       if (error) throw error;
 
       showToast('success', 'Cliente cadastrado com sucesso!');
-      onSuccess(data);
+      onSuccess(createdClient as Cliente);
+      reset();
       onClose();
-      resetForm();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao criar cliente:', err);
-      showToast('error', 'Erro ao salvar cliente', err.message);
-    } finally {
-      setSaving(false);
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar cliente.';
+      showToast('error', 'Erro ao salvar cliente', msg);
     }
   };
 
@@ -143,201 +143,219 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ isOpen, onClose,
     <ModalPortal>
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
         <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 max-h-[92vh] flex flex-col">
+          {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 bg-blue-600 border-b border-blue-700/60 text-white shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
-                <UserPlus className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
+                <UserPlus className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-base leading-tight">
-                  Cadastrar Novo Cliente
-                </h3>
-                <p className="text-xs text-blue-100 font-medium">
-                  Adicione um novo cliente com endereço estruturado
-                </p>
+                <h3 className="font-bold text-white text-base leading-tight">Cadastrar Novo Cliente</h3>
+                <p className="text-xs text-blue-100 font-medium">Validação estrita com endereço estruturado</p>
               </div>
             </div>
             <button
-              onClick={() => { onClose(); resetForm(); }}
+              type="button"
+              onClick={() => {
+                reset();
+                onClose();
+              }}
               className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <form onSubmit={handleCreate} className="p-6 space-y-4 overflow-y-auto">
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4 overflow-y-auto flex-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* Nome */}
               <div className="sm:col-span-2">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Nome Completo *
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="Ex: Marina Costa"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
+                  placeholder="Ex: Carlos Eduardo"
+                  {...register('nome')}
+                  className={`w-full px-4 py-2.5 bg-slate-50 border rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none ${
+                    errors.nome ? 'border-rose-300 ring-2 ring-rose-200/50' : 'border-slate-200 focus:border-blue-500'
+                  }`}
+                />
+                {errors.nome && (
+                  <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.nome.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Telefone */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  WhatsApp / Celular *
+                </label>
+                <input
+                  type="text"
+                  placeholder="(81) 98888-7777"
+                  value={telefoneValue || ''}
+                  onChange={handlePhoneChange}
+                  className={`w-full px-4 py-2.5 bg-slate-50 border rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none font-mono ${
+                    errors.telefone ? 'border-rose-300 ring-2 ring-rose-200/50' : 'border-slate-200 focus:border-blue-500'
+                  }`}
+                />
+                {errors.telefone && (
+                  <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.telefone.message}
+                  </p>
+                )}
+              </div>
+
+              {/* E-mail */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  E-mail (opcional)
+                </label>
+                <input
+                  type="email"
+                  placeholder="cliente@email.com"
+                  {...register('email')}
+                  className={`w-full px-4 py-2.5 bg-slate-50 border rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none ${
+                    errors.email ? 'border-rose-300 ring-2 ring-rose-200/50' : 'border-slate-200 focus:border-blue-500'
+                  }`}
+                />
+                {errors.email && (
+                  <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Divisor Endereço */}
+              <div className="sm:col-span-2 pt-2 border-t border-slate-100">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                  Endereço da Instalação
+                </span>
+              </div>
+
+              {/* CEP */}
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  CEP (Autopreenchimento)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="50000-000"
+                    maxLength={9}
+                    value={cepValue || ''}
+                    onChange={handleCepChange}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
+                  />
+                  {loadingCep && (
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-xs text-blue-600 font-semibold bg-white px-2 py-1 rounded-lg">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Buscando...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Logradouro */}
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Rua / Avenida *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Rua das Flores"
+                  {...register('logradouro')}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
+              {/* Número */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Telefone (WhatsApp) *
+                  Número *
                 </label>
                 <input
-                  type="tel"
-                  required
-                  placeholder="(81) 99999-8888"
-                  value={telefone}
-                  onChange={(e) => setTelefone(maskPhone(e.target.value))}
+                  type="text"
+                  placeholder="123"
+                  {...register('numero')}
+                  ref={(e) => {
+                    register('numero').ref(e);
+                    (numeroInputRef as any).current = e;
+                  }}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
                 />
               </div>
 
+              {/* Complemento */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  E-mail (Opcional)
+                  Complemento
                 </label>
                 <input
-                  type="email"
-                  placeholder="marina@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  placeholder="Apto 402, Bloco B"
+                  {...register('complemento')}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
                 />
               </div>
-            </div>
 
-            {/* Seção Endereço da Instalação */}
-            <div className="pt-3 border-t border-slate-100 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                  Endereço da Instalação
-                </span>
-                {loadingCep ? (
-                  <span className="text-[11px] text-blue-600 font-bold flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin" /> Buscando CEP...
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-slate-400">Autocompleta via CEP</span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-                    CEP *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="00000-000"
-                    value={cep}
-                    maxLength={9}
-                    onChange={handleCepChange}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-                    Número *
-                  </label>
-                  <input
-                    ref={numeroInputRef}
-                    type="text"
-                    required
-                    placeholder="Ex: 120 ou S/N"
-                    value={numero}
-                    onChange={(e) => setNumero(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
+              {/* Bairro */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-                  Logradouro (Rua / Av) *
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Bairro
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="Ex: Rua das Flores"
-                  value={logradouro}
-                  onChange={(e) => setLogradouro(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
+                  placeholder="Boa Viagem"
+                  {...register('bairro')}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-                    Complemento
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Apto 302, Bloco B"
-                    value={complemento}
-                    onChange={(e) => setComplemento(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-                    Bairro *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: Boa Viagem"
-                    value={bairro}
-                    onChange={(e) => setBairro(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
+              {/* Cidade / Estado */}
+              <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-2">
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-                    Cidade *
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Cidade
                   </label>
                   <input
                     type="text"
-                    required
                     placeholder="Recife"
-                    value={cidade}
-                    onChange={(e) => setCidade(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
+                    {...register('cidade')}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-                    UF *
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    UF
                   </label>
                   <input
                     type="text"
-                    required
                     maxLength={2}
                     placeholder="PE"
-                    value={estado}
-                    onChange={(e) => setEstado(e.target.value.toUpperCase())}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 uppercase text-center font-bold"
+                    {...register('estado')}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 uppercase font-mono text-center"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
-                  Ponto de Referência <span className="text-slate-400 font-normal">(para o técnico)</span>
+              {/* Ponto de Referência */}
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Ponto de Referência para a Equipe Técnica
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Em frente à padaria / portão branco"
-                  value={pontoReferencia}
-                  onChange={(e) => setPontoReferencia(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500"
+                  placeholder="Ex: Próximo à padaria diplomata, portão branco"
+                  {...register('ponto_referencia')}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -345,17 +363,27 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({ isOpen, onClose,
             <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
               <button
                 type="button"
-                onClick={() => { onClose(); resetForm(); }}
+                onClick={() => {
+                  reset();
+                  onClose();
+                }}
                 className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                disabled={saving}
-                className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs cursor-pointer disabled:opacity-50"
+                disabled={isSubmitting}
+                className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
               >
-                {saving ? 'Cadastrando...' : 'Cadastrar Cliente'}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <span>Cadastrar Cliente</span>
+                )}
               </button>
             </div>
           </form>

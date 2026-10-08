@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, X, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Produto } from '../../types/database';
 import { ModalPortal } from '../ModalPortal';
+import { produtoSchema, ProdutoFormData } from '../../lib/schemas';
 
 interface NewProductModalProps {
   isOpen: boolean;
@@ -17,30 +20,33 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
   onSuccess,
   showToast,
 }) => {
-  const [nome, setNome] = useState('');
-  const [categoria, setCategoria] = useState('');
-  const [preco, setPreco] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [saving, setSaving] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ProdutoFormData>({
+    resolver: zodResolver(produtoSchema),
+    defaultValues: {
+      nome: '',
+      categoria: '',
+      preco_unitario: 0,
+      descricao: '',
+      ativo: true,
+    },
+  });
 
   if (!isOpen) return null;
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+  const onSubmit = async (data: ProdutoFormData) => {
     try {
-      const precoNum = parseFloat(preco.replace(',', '.'));
-      if (isNaN(precoNum) || precoNum < 0) {
-        throw new Error('Informe um preço unitário válido.');
-      }
-
-      const { data, error } = await supabase
+      const { data: createdProduct, error } = await supabase
         .from('produtos')
         .insert({
-          nome: nome.trim(),
-          categoria: categoria.trim(),
-          preco_unitario: precoNum,
-          descricao: descricao.trim() || null,
+          nome: data.nome.trim(),
+          categoria: data.categoria.trim(),
+          preco_unitario: data.preco_unitario,
+          descricao: data.descricao?.trim() || null,
           ativo: true,
         })
         .select()
@@ -49,17 +55,13 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
       if (error) throw error;
 
       showToast('success', 'Produto cadastrado com sucesso!');
-      onSuccess(data);
-      setNome('');
-      setCategoria('');
-      setPreco('');
-      setDescricao('');
+      onSuccess(createdProduct as Produto);
+      reset();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao cadastrar produto:', err);
-      showToast('error', 'Erro ao salvar produto', err.message);
-    } finally {
-      setSaving(false);
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar produto no banco.';
+      showToast('error', 'Erro ao salvar produto', msg);
     }
   };
 
@@ -77,32 +79,41 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
                   Cadastrar Novo Equipamento
                 </h3>
                 <p className="text-xs text-blue-100 font-medium">
-                  Adicione itens ao catálogo da SmartLar
+                  Adicione itens ao catálogo com validação rigorosa
                 </p>
               </div>
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                reset();
+                onClose();
+              }}
               className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <form onSubmit={handleCreate} className="p-6 space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                 Nome do Dispositivo *
               </label>
               <input
                 type="text"
-                required
                 placeholder="Ex: Câmera Speed Dome 4K"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+                {...register('nome')}
+                className={`w-full px-4 py-2.5 bg-slate-50 border rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none ${
+                  errors.nome ? 'border-rose-300 ring-2 ring-rose-200/50' : 'border-slate-200 focus:border-blue-500'
+                }`}
               />
+              {errors.nome && (
+                <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.nome.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -111,12 +122,18 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
               </label>
               <input
                 type="text"
-                required
                 placeholder="Seguranca, Automacao, Iluminacao..."
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+                {...register('categoria')}
+                className={`w-full px-4 py-2.5 bg-slate-50 border rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none ${
+                  errors.categoria ? 'border-rose-300 ring-2 ring-rose-200/50' : 'border-slate-200 focus:border-blue-500'
+                }`}
               />
+              {errors.categoria && (
+                <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.categoria.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -124,13 +141,20 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
                 Preço Unitário (R$) *
               </label>
               <input
-                type="text"
-                required
+                type="number"
+                step="0.01"
                 placeholder="Ex: 450.00"
-                value={preco}
-                onChange={(e) => setPreco(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
+                {...register('preco_unitario', { valueAsNumber: true })}
+                className={`w-full px-4 py-2.5 bg-slate-50 border rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none font-mono ${
+                  errors.preco_unitario ? 'border-rose-300 ring-2 ring-rose-200/50' : 'border-slate-200 focus:border-blue-500'
+                }`}
               />
+              {errors.preco_unitario && (
+                <p className="text-[11px] text-rose-600 font-medium mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.preco_unitario.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -140,8 +164,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
               <textarea
                 rows={2}
                 placeholder="Especificações, conectividade..."
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
+                {...register('descricao')}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
               />
             </div>
@@ -149,17 +172,20 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
             <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => {
+                  reset();
+                  onClose();
+                }}
                 className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                disabled={saving}
+                disabled={isSubmitting}
                 className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs cursor-pointer disabled:opacity-50"
               >
-                {saving ? 'Cadastrando...' : 'Salvar Equipamento'}
+                {isSubmitting ? 'Cadastrando...' : 'Salvar Equipamento'}
               </button>
             </div>
           </form>
