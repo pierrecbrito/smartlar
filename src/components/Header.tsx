@@ -81,13 +81,13 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => setSearchModalOpen(true)}
-            className="w-full pl-11 pr-3 py-2.5 bg-white border border-slate-200/90 rounded-2xl text-xs sm:text-sm text-slate-400 hover:text-slate-600 hover:border-blue-400/60 focus:outline-none shadow-xs transition-all flex items-center justify-between text-left cursor-pointer group"
+            className="w-full px-3.5 sm:px-4 py-2.5 bg-white border border-slate-200/90 rounded-2xl text-xs sm:text-sm text-slate-400 hover:text-slate-600 hover:border-blue-400/60 focus:outline-none shadow-xs transition-all flex items-center justify-between text-left cursor-pointer group"
           >
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors absolute left-7 sm:left-9" />
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Search className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors shrink-0" />
               <span className="truncate">Buscar clientes, pedidos ou equipamentos...</span>
             </div>
-            <div className="hidden sm:flex items-center gap-1 bg-slate-100 group-hover:bg-blue-50 text-slate-500 group-hover:text-blue-700 px-2 py-0.5 rounded-lg text-[10px] font-bold border border-slate-200/80 transition-colors shrink-0">
+            <div className="hidden sm:flex items-center gap-1 bg-slate-100 group-hover:bg-blue-50 text-slate-500 group-hover:text-blue-700 px-2 py-0.5 rounded-lg text-[10px] font-bold border border-slate-200/80 transition-colors shrink-0 ml-2">
               <Command className="w-3 h-3" />
               <span>K</span>
             </div>
@@ -160,11 +160,6 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                       <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">Ctrl+K</span>
                     </button>
-
-                    <div className="px-4 py-2 text-[11px] text-slate-400 flex items-center gap-2 border-t border-slate-100/60 mt-1">
-                      <HelpCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>SmartLar v1.2 Pro • Supabase</span>
-                    </div>
                   </div>
 
                   {/* Botão Sair com Confirmação Segura */}
